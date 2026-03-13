@@ -4,887 +4,1645 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LB Deck Builder — Template Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-:root {
-  --bg: #090909;
-  --surface: #111111;
-  --surface2: #191919;
-  --surface3: #222222;
-  --border: #282828;
-  --border2: #333333;
-  --accent: #F97316;
-  --accent-bg: rgba(249,115,22,0.1);
-  --accent-border: rgba(249,115,22,0.25);
-  --text: #E2E2E2;
-  --text-dim: #888;
-  --text-faint: #3a3a3a;
-  --green: #22c55e;
-  --amber: #F97316;
-  --gray: #666;
-  --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-  --sans: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#090909;--surface:#111;--s2:#191919;--s3:#222;
+  --b1:#282828;--b2:#333;
+  --acc:#F97316;--acc-bg:rgba(249,115,22,.1);--acc-b:rgba(249,115,22,.25);
+  --tx:#E2E2E2;--txd:#888;--txf:#3a3a3a;
+  --green:#22c55e;--mono:'SF Mono','Fira Code','Consolas',monospace;
+  --sans:-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --f-tight:'Inter Tight',sans-serif;
+  --f-bask:'Libre Baskerville',serif;
+  --f-dmmono:'DM Mono',monospace;
 }
-html, body { height: 100%; overflow: hidden; }
-body {
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--text);
-  display: flex;
-  height: 100vh;
-  font-size: 13px;
-}
-
-/* ── SIDEBAR ── */
-.sidebar {
-  width: 210px;
-  min-width: 210px;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-}
-.sidebar-logo {
-  padding: 18px 16px 14px;
-  border-bottom: 1px solid var(--border);
-}
-.logo-mark {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-.logo-icon {
-  width: 26px; height: 26px;
-  background: var(--accent);
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
-}
-.logo-text {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text);
-}
-.logo-sub {
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.05em;
-  margin-left: 34px;
-}
-.template-section-label {
-  padding: 14px 14px 6px;
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  font-weight: 700;
-}
-.template-list { flex: 1; overflow-y: auto; padding: 0 6px 6px; }
-.tpl-item {
-  padding: 8px 10px;
-  border-radius: 7px;
-  cursor: pointer;
-  margin-bottom: 1px;
-  border: 1px solid transparent;
-  transition: background 0.12s, border-color 0.12s;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.tpl-item:hover { background: var(--surface2); }
-.tpl-item.active { background: var(--accent-bg); border-color: var(--accent-border); }
-.tpl-item-row { display: flex; align-items: center; gap: 6px; }
-.tpl-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
-.tpl-id { font-size: 9px; color: var(--text-faint); font-family: var(--mono); }
-.tpl-meta { display: flex; align-items: center; gap: 5px; }
-.dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.dot.locked { background: var(--green); }
-.dot.in-progress { background: var(--amber); }
-.dot.draft { background: var(--gray); }
-.tpl-status { font-size: 9px; color: var(--text-dim); }
-
-.sidebar-foot {
-  padding: 10px 6px;
-  border-top: 1px solid var(--border);
-  display: flex; gap: 6px;
-}
-.btn-new {
-  flex: 1;
-  padding: 8px;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 7px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-.btn-new:hover { opacity: 0.88; }
-
-/* ── MAIN ── */
-.main { flex: 1; display: flex; overflow: hidden; min-width: 0; }
-
-/* ── SLIDE PANEL ── */
-.slide-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--border);
-  min-width: 0;
-  overflow: hidden;
-}
-.pane-header {
-  padding: 0 18px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 50px;
-  flex-shrink: 0;
-}
-.pane-title { font-size: 12px; font-weight: 600; }
-.pane-sub { font-size: 10px; color: var(--text-dim); margin-top: 1px; }
-.badge {
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-.badge.locked { background: rgba(34,197,94,0.12); color: #22c55e; }
-.badge.in-progress { background: rgba(249,115,22,0.12); color: #F97316; }
-.badge.draft { background: rgba(100,100,100,0.15); color: #888; }
-.btn-lock {
-  margin-left: auto;
-  padding: 5px 10px;
-  background: transparent;
-  border: 1px solid var(--border2);
-  border-radius: 5px;
-  color: var(--text-dim);
-  font-size: 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.btn-lock:hover { border-color: var(--accent); color: var(--accent); }
-
-.canvas-wrap {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #060606;
-  padding: 24px;
-  overflow: hidden;
-}
-canvas#slide {
-  max-width: 100%;
-  max-height: 100%;
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-}
-
-.elements-pane {
-  height: 175px;
-  min-height: 175px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-}
-.elements-head {
-  padding: 8px 16px 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid var(--border);
-}
-.elements-head-label {
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  font-weight: 700;
-}
-.elements-list { overflow-y: auto; flex: 1; padding: 4px 6px; }
-.el-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 4px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 11px;
-  border: 1px solid transparent;
-}
-.el-row:hover { background: var(--surface2); }
-.el-row.sel { background: var(--accent-bg); border-color: var(--accent-border); }
-.el-tag {
-  font-family: var(--mono);
-  font-size: 9px;
-  padding: 2px 5px;
-  border-radius: 3px;
-  background: var(--surface3);
-  color: var(--text-dim);
-  min-width: 34px;
-  text-align: center;
-}
-.el-label { flex: 1; color: var(--text); }
-.el-coords { font-family: var(--mono); font-size: 9px; color: var(--text-faint); }
-
-/* ── CHAT PANEL ── */
-.chat-panel {
-  width: 350px;
-  min-width: 350px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.chat-msgs {
-  flex: 1;
-  overflow-y: auto;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.chat-empty-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  text-align: center;
-  padding: 20px;
-}
-.chat-empty-state .icon { font-size: 22px; }
-.chat-empty-state p { font-size: 11px; color: var(--text-dim); line-height: 1.6; max-width: 200px; }
-.msg {
-  max-width: 88%;
-  padding: 9px 11px;
-  border-radius: 10px;
-  font-size: 11.5px;
-  line-height: 1.65;
-  word-break: break-word;
-}
-.msg.user {
-  align-self: flex-end;
-  background: var(--accent);
-  color: white;
-  border-bottom-right-radius: 3px;
-}
-.msg.assistant {
-  align-self: flex-start;
-  background: var(--surface2);
-  color: var(--text);
-  border-bottom-left-radius: 3px;
-  border: 1px solid var(--border);
-}
-.msg code {
-  font-family: var(--mono);
-  font-size: 10px;
-  background: rgba(0,0,0,0.35);
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-.msg pre {
-  font-family: var(--mono);
-  font-size: 10px;
-  background: rgba(0,0,0,0.4);
-  border: 1px solid var(--border);
-  padding: 8px 10px;
-  border-radius: 6px;
-  margin-top: 7px;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  line-height: 1.5;
-}
-.typing-bubble {
-  align-self: flex-start;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  border-bottom-left-radius: 3px;
-  padding: 10px 14px;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-.typing-bubble span {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--text-dim);
-  animation: pulse 1.2s infinite;
-}
-.typing-bubble span:nth-child(2) { animation-delay: 0.18s; }
-.typing-bubble span:nth-child(3) { animation-delay: 0.36s; }
-@keyframes pulse {
-  0%,80%,100% { opacity: 0.3; transform: scale(0.85); }
-  40% { opacity: 1; transform: scale(1); }
-}
-.chat-foot {
-  padding: 10px 12px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--surface);
-}
-.chat-hint {
-  font-size: 9px;
-  color: var(--text-faint);
-  letter-spacing: 0.04em;
-}
-.chat-row { display: flex; gap: 7px; align-items: flex-end; }
-textarea.chat-input {
-  flex: 1;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  color: var(--text);
-  font-size: 11.5px;
-  padding: 8px 10px;
-  resize: none;
-  font-family: var(--sans);
-  height: 68px;
-  outline: none;
-  line-height: 1.5;
-  transition: border-color 0.15s;
-}
-textarea.chat-input:focus { border-color: var(--accent); }
-textarea.chat-input::placeholder { color: var(--text-faint); }
-textarea.chat-input:disabled { opacity: 0.4; }
-button.send {
-  width: 34px; height: 34px;
-  background: var(--accent);
-  border: none;
-  border-radius: 7px;
-  color: white;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  transition: opacity 0.15s;
-}
-button.send:hover { opacity: 0.88; }
-button.send:disabled { opacity: 0.3; cursor: not-allowed; }
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 3px; height: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-/* ── MODAL ── */
-.modal-bg {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.75);
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-}
-.modal-bg.open { display: flex; }
-.modal {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 12px;
-  padding: 22px;
-  width: 380px;
-}
-.modal-title { font-size: 14px; font-weight: 700; margin-bottom: 18px; }
-.fgroup { margin-bottom: 12px; }
-.flabel {
-  display: block;
-  font-size: 10px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  margin-bottom: 5px;
-}
-.finput, .fselect {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  color: var(--text);
-  font-size: 12px;
-  padding: 7px 10px;
-  font-family: var(--sans);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.finput:focus, .fselect:focus { border-color: var(--accent); }
-.fselect option { background: var(--surface2); }
-.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
-.btn-cancel-m {
-  padding: 7px 14px;
-  background: transparent;
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  color: var(--text-dim);
-  font-size: 11px;
-  cursor: pointer;
-}
-.btn-cancel-m:hover { background: var(--surface2); }
-.btn-create-m {
-  padding: 7px 14px;
-  background: var(--accent);
-  border: none;
-  border-radius: 6px;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);display:flex;height:100vh;font-size:13px;}
+.sidebar{width:214px;min-width:214px;background:var(--surface);border-right:1px solid var(--b1);display:flex;flex-direction:column;}
+.sb-logo{padding:17px 15px 13px;border-bottom:1px solid var(--b1);}
+.sb-mark{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
+.sb-icon{width:26px;height:26px;background:var(--acc);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.sb-name{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+.sb-sub{font-size:10px;color:var(--txd);letter-spacing:.05em;margin-left:34px;}
+.sb-sec{padding:13px 13px 5px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--txf);font-weight:700;}
+.tpl-list{flex:1;overflow-y:auto;padding:0 5px 5px;}
+.tpl-analyze{opacity:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;border:none;background:rgba(255,255,255,.1);cursor:pointer;transition:opacity .15s,background .15s;flex-shrink:0;padding:0;}
+.tpl-analyze:hover{background:rgba(255,255,255,.25);}
+.tpl:hover .tpl-analyze,.tpl.active .tpl-analyze{opacity:1;}
+.tpl.active .tpl-analyze{background:rgba(255,255,255,.15);}
+.tpl-analyze svg{pointer-events:none;}
+.tpl{padding:8px 10px;border-radius:7px;cursor:pointer;margin-bottom:2px;border:1px solid transparent;transition:background .12s,border-color .12s;}
+.tpl:hover{background:var(--s2);}
+.tpl.active{background:var(--acc);border-color:var(--acc);}
+.tpl.active .tpl-n{color:#fff;}
+.tpl.active .tpl-id{color:rgba(255,255,255,.5);}
+.tpl.active .tpl-st{color:rgba(255,255,255,.7);}
+.tpl.active .dot.locked{background:#fff;}
+.tpl.active .dot.in-progress{background:rgba(255,255,255,.7);}
+.tpl.active .dot.draft{background:rgba(255,255,255,.4);}
+.tpl-row{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.tpl-n{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+.tpl-id{font-size:9px;color:var(--txf);font-family:var(--mono);}
+.tpl-meta{display:flex;align-items:center;gap:4px;}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.dot.locked{background:var(--green);}
+.dot.in-progress{background:var(--acc);}
+.dot.draft{background:#555;}
+.tpl-st{font-size:9px;color:var(--txd);}
+.assets-sec{border-top:1px solid var(--b1);padding:8px 6px 8px;}
+.assets-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--txf);font-weight:700;padding:0 7px 6px;display:block;}
+.asset-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--s2);margin-bottom:4px;border:1px dashed var(--b2);cursor:pointer;transition:border-color .15s;}
+.asset-row:hover{border-color:var(--acc);}
+.asset-thumb{width:34px;height:22px;border-radius:3px;background:var(--s3);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.asset-thumb img{width:100%;height:100%;object-fit:cover;}
+.asset-info{flex:1;min-width:0;}
+.asset-name{font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx);}
+.asset-hint{font-size:9px;color:var(--txd);}
+input[type=file]{display:none;}
+.sb-foot{padding:9px 5px;border-top:1px solid var(--b1);}
+.btn-new{width:100%;padding:8px;background:var(--acc);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:opacity .15s;}
+.btn-new:hover{opacity:.86;}
+.main{flex:1;display:flex;overflow:hidden;min-width:0;}
+.slide-panel{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--b1);min-width:0;overflow:hidden;}
+.ph{padding:0 13px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;height:50px;flex-shrink:0;}
+.ph-title{font-size:12px;font-weight:600;}
+.ph-sub{font-size:10px;color:var(--txd);margin-top:1px;}
+.badge{padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+.badge.locked{background:rgba(34,197,94,.12);color:#22c55e;}
+.badge.in-progress{background:rgba(249,115,22,.12);color:#F97316;}
+.badge.draft{background:rgba(100,100,100,.14);color:#777;}
+.ph-acts{margin-left:auto;display:flex;gap:5px;align-items:center;}
+.bsm{padding:5px 9px;background:transparent;border:1px solid var(--b2);border-radius:5px;color:var(--txd);font-size:10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.bsm:hover{border-color:var(--acc);color:var(--acc);}
+.bsm.exp{border-color:rgba(249,115,22,.4);color:#F97316;}
+.bsm.exp:hover{background:rgba(249,115,22,.1);}
+.exp-bar{padding:5px 13px 6px;border-bottom:1px solid var(--b1);background:rgba(249,115,22,.05);display:none;}
+.exp-bar p{font-size:10px;color:#c76020;line-height:1.5;}
+.exp-bar strong{color:var(--acc);}
+.canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;background:#e8e8e8;padding:20px;overflow:hidden;position:relative;}
+canvas#slide{max-width:100%;max-height:100%;display:block;transition:opacity .15s ease;}
+canvas#slide.switching{opacity:0;}
+canvas#slide.place-mode{cursor:crosshair;}
+.c-info{position:absolute;bottom:9px;right:13px;font-size:9px;font-family:var(--mono);color:#252525;}
+.c-crosshair{position:absolute;pointer-events:none;font-size:9px;font-family:var(--mono);color:var(--acc);background:rgba(0,0,0,.7);padding:2px 6px;border-radius:3px;white-space:nowrap;display:none;}
+.place-btn{padding:5px 9px;background:transparent;border:1px solid var(--b2);border-radius:5px;color:var(--txd);font-size:10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.place-btn:hover{border-color:var(--acc);color:var(--acc);}
+.place-btn.active{background:rgba(249,115,22,.15);border-color:var(--acc);color:var(--acc);}
+/* modal wider for image upload */
+.modal{background:var(--surface);border:1px solid var(--b2);border-radius:12px;padding:22px;width:460px;max-height:90vh;overflow-y:auto;}
+.ref-upload-zone{border:1px dashed var(--b2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border-color .15s;margin-bottom:4px;position:relative;}
+.ref-upload-zone:hover{border-color:var(--acc);}
+.ref-upload-zone.has-img{border-style:solid;border-color:rgba(249,115,22,.4);}
+.ref-preview{width:100%;border-radius:5px;display:none;margin-top:8px;}
+.ref-preview.show{display:block;}
+.analyze-btn{width:100%;padding:8px;background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.35);border-radius:6px;color:var(--acc);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;display:none;}
+.analyze-btn:hover{background:rgba(249,115,22,.2);}
+.analyze-btn:disabled{opacity:.5;cursor:not-allowed;}
+.analyze-status{font-size:10px;color:var(--txd);text-align:center;margin-top:6px;min-height:16px;}
+.el-pane{height:200px;min-height:200px;border-top:1px solid var(--b1);display:flex;flex-direction:column;}
+.el-head{padding:6px 13px 5px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--b1);}
+.el-head-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--txd);font-weight:700;}
+.el-body{display:flex;flex:1;overflow:hidden;}
+.el-list{width:200px;min-width:200px;overflow-y:auto;padding:3px 5px;border-right:1px solid var(--b1);}
+.el-row{display:flex;align-items:center;gap:6px;padding:3px 7px;border-radius:5px;cursor:pointer;font-size:11px;border:1px solid transparent;}
+.el-row:hover{background:var(--s2);}
+.el-row.sel{background:var(--acc-bg);border-color:var(--acc-b);}
+.el-tag{font-family:var(--mono);font-size:9px;padding:2px 4px;border-radius:3px;background:var(--s3);color:var(--txd);min-width:28px;text-align:center;}
+.el-lbl{flex:1;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* inline editor */
+.el-editor{flex:1;padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+.el-editor-empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--txf);}
+.ed-title{font-size:10px;font-weight:600;color:var(--tx);margin-bottom:2px;}
+.ed-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ed-field{display:flex;flex-direction:column;gap:3px;}
+.ed-label{font-size:9px;color:var(--txd);letter-spacing:.06em;text-transform:uppercase;}
+.ed-row{display:flex;align-items:center;gap:3px;}
+.ed-nudge{width:20px;height:24px;background:var(--s3);border:1px solid var(--b2);border-radius:3px;color:var(--txd);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .1s;line-height:1;}
+.ed-nudge:hover{background:var(--acc);border-color:var(--acc);color:#fff;}
+.ed-input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--tx);font-size:11px;font-family:var(--mono);padding:3px 5px;outline:none;height:24px;text-align:right;}
+.ed-input:focus{border-color:var(--acc);}
+.ed-select{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--tx);font-size:10px;padding:3px 5px;height:24px;margin-top:2px;outline:none;}
+.ed-select:focus{border-color:var(--acc);}
+.ed-unit{font-size:9px;color:var(--txf);flex-shrink:0;}
+.ed-hint{font-size:9px;color:var(--txf);margin-top:2px;}
+.ed-val-row{display:flex;gap:4px;align-items:center;}
+.ed-val-input{flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:4px;color:var(--tx);font-size:11px;font-family:var(--mono);padding:3px 6px;outline:none;height:24px;}
+.ed-val-input:focus{border-color:var(--acc);}
+.chat-panel{width:330px;min-width:330px;display:flex;flex-direction:column;overflow:hidden;}
+.chat-msgs{flex:1;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:8px;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:20px;}
+.empty-state p{font-size:11px;color:var(--txd);line-height:1.65;max-width:210px;}
+.msg{max-width:90%;padding:8px 11px;border-radius:10px;font-size:11.5px;line-height:1.65;word-break:break-word;}
+.msg.user{align-self:flex-end;background:var(--acc);color:#fff;border-bottom-right-radius:3px;}
+.msg.assistant{align-self:flex-start;background:var(--s2);color:var(--tx);border-bottom-left-radius:3px;border:1px solid var(--b1);}
+.msg code{font-family:var(--mono);font-size:10px;background:rgba(0,0,0,.35);padding:1px 4px;border-radius:3px;}
+.msg pre{font-family:var(--mono);font-size:10px;background:rgba(0,0,0,.4);border:1px solid var(--b1);padding:8px 10px;border-radius:6px;margin-top:7px;overflow-x:auto;white-space:pre-wrap;line-height:1.5;}
+.typing{align-self:flex-start;background:var(--s2);border:1px solid var(--b1);border-radius:10px;border-bottom-left-radius:3px;padding:10px 13px;display:flex;gap:4px;align-items:center;}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--txd);animation:pulse 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:.18s;}
+.typing span:nth-child(3){animation-delay:.36s;}
+@keyframes pulse{0%,80%,100%{opacity:.3;transform:scale(.85);}40%{opacity:1;transform:scale(1);}}
+.chat-foot{padding:9px 11px;border-top:1px solid var(--b1);display:flex;flex-direction:column;gap:6px;background:var(--surface);}
+.chat-hint{font-size:9px;color:var(--txf);}
+.chat-row{display:flex;gap:6px;align-items:flex-end;}
+textarea.ci{flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:7px;color:var(--tx);font-size:11.5px;padding:7px 9px;resize:none;font-family:var(--sans);height:62px;outline:none;line-height:1.5;transition:border-color .15s;}
+textarea.ci:focus{border-color:var(--acc);}
+textarea.ci::placeholder{color:var(--txf);}
+textarea.ci:disabled{opacity:.3;}
+button.send{width:32px;height:32px;background:var(--acc);border:none;border-radius:7px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s;}
+button.send:hover{opacity:.86;}
+button.send:disabled{opacity:.28;cursor:not-allowed;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--b2);border-radius:12px;padding:22px;width:370px;}
+.modal-title{font-size:14px;font-weight:700;margin-bottom:16px;}
+.fg{margin-bottom:11px;}
+.fl{display:block;font-size:9px;color:var(--txd);letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:5px;}
+.fi,.fsel{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:6px;color:var(--tx);font-size:12px;padding:7px 9px;font-family:var(--sans);outline:none;transition:border-color .15s;}
+.fi:focus,.fsel:focus{border-color:var(--acc);}
+.fsel option{background:var(--s2);}
+.m-acts{display:flex;gap:7px;justify-content:flex-end;margin-top:16px;}
+.btn-cancel{padding:7px 13px;background:transparent;border:1px solid var(--b2);border-radius:6px;color:var(--txd);font-size:11px;cursor:pointer;}
+.btn-cancel:hover{background:var(--s2);}
+.btn-ok{padding:7px 13px;background:var(--acc);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-mark">
-      <div class="logo-icon">🍊</div>
-      <div class="logo-text">LB</div>
+  <div class="sb-logo">
+    <div class="sb-mark">
+      <div class="sb-icon">🍊</div>
+      <div class="sb-name">LB</div>
     </div>
-    <div class="logo-sub">Deck Builder Studio</div>
+    <div class="sb-sub">Deck Builder Studio</div>
   </div>
-  <div class="template-section-label">Templates</div>
-  <div class="template-list" id="tplList"></div>
-  <div class="sidebar-foot">
+  <div class="sb-sec">Templates</div>
+  <div class="tpl-list" id="tplList"></div>
+
+  <div class="sb-sec" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between">
+    <span>Global Elements</span>
+    <button onclick="toggleGlobalEditor()" id="btnGlobEdit"
+      style="font-size:9px;padding:2px 7px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">Edit</button>
+  </div>
+  <div id="globalList" style="padding:0 2px 4px"></div>
+
+  <div class="assets-sec">
+    <span class="assets-lbl">Slide Assets</span>
+    <div class="asset-row" onclick="document.getElementById('upLogo').click()" title="Upload LB logo PNG">
+      <div class="asset-thumb" id="thumbLogo">
+        <svg width="20" height="12" viewBox="0 0 20 12"><rect width="20" height="12" rx="1" fill="#222"/><text x="10" y="9" font-size="5" fill="#444" text-anchor="middle" font-family="sans-serif">LOGO</text></svg>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name" id="logoName">LB Logo (white)</div>
+        <div class="asset-hint" id="logoHint">Click to upload PNG</div>
+      </div>
+    </div>
+    <div class="asset-row" onclick="document.getElementById('upRocky').click()" title="Upload rocky photo">
+      <div class="asset-thumb" id="thumbRocky">
+        <svg width="20" height="14" viewBox="0 0 20 14"><rect width="20" height="14" rx="1" fill="#222"/><circle cx="7" cy="5" r="2.5" fill="#333"/><path d="M0 10 5 7 9 9.5 13 6.5 20 10v4H0z" fill="#2a2a2a"/></svg>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name" id="rockyName">Rocky Photo</div>
+        <div class="asset-hint" id="rockyHint">Click to upload PNG/JPG</div>
+      </div>
+    </div>
+    <input type="file" id="upLogo" accept="image/*">
+    <input type="file" id="upRocky" accept="image/*">
+  </div>
+
+  <div class="sb-foot">
     <button class="btn-new" onclick="openModal()">+ New Template</button>
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-
-  <!-- SLIDE PREVIEW PANEL -->
   <div class="slide-panel">
-    <div class="pane-header" id="slideHeader">
+    <div class="ph">
       <div>
-        <div class="pane-title" id="hTitle">Select a template</div>
-        <div class="pane-sub" id="hSub">—</div>
+        <div class="ph-title" id="hTitle" title="Click to rename" onclick="startRename('name')" style="cursor:text">Select a template</div>
+        <div class="ph-sub" id="hSub" title="Click to edit description" onclick="startRename('desc')" style="cursor:text">—</div>
       </div>
       <span class="badge draft" id="hBadge" style="display:none"></span>
-      <button class="btn-lock" id="btnLock" style="display:none" onclick="toggleLock()">Lock</button>
-    </div>
-    <div class="canvas-wrap">
-      <canvas id="slide"></canvas>
-    </div>
-    <div class="elements-pane">
-      <div class="elements-head">
-        <span class="elements-head-label">Elements</span>
-        <span style="font-size:9px;color:var(--text-faint);margin-left:auto">click to highlight</span>
+      <div class="ph-acts">
+        <button class="bsm exp" id="btnExport" onclick="exportPNG()" style="display:none">
+          <svg width="10" height="11" viewBox="0 0 12 14" fill="currentColor"><path d="M6 9.5L2 5.5h2.5V1h3v4.5H10L6 9.5zM1 11.5h10v1.5H1z"/></svg>
+          Export PNG
+        </button>
+        <button class="bsm" style="border-color:rgba(99,179,99,.4);color:#6cb86c" onclick="exportGAS()">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1h8l2 2v8H2V1zm5 2H5v3H3l3 3 3-3H7V3z"/></svg>
+          Export .gs
+        </button>
+        <button class="bsm" id="btnLock" style="display:none" onclick="toggleLock()">Lock</button>
+        <button class="bsm" id="btnUnlock" style="display:none;border-color:rgba(34,197,94,.4);color:#22c55e" onclick="toggleLock()">🔓 Unlock</button>
       </div>
-      <div class="elements-list" id="elList"></div>
+    </div>
+
+    <!-- Export resolution notice -->
+    <div class="exp-bar" id="expBar">
+      <p>Export renders at <strong>960×540px</strong> (= 720pt × 1.333 — exact Google Slides PNG resolution). Open both in Photoshop and overlay at 100% for pixel-perfect comparison.</p>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="slide"></canvas>
+      <div class="c-crosshair" id="crosshair"></div>
+      <div class="c-info" id="cInfo"></div>
+    </div>
+    <div class="el-pane">
+      <div class="el-head">
+        <span class="el-head-lbl">Elements</span>
+        <button class="place-btn" id="placeBtn" onclick="togglePlaceMode()" title="Click canvas to set x,y of selected element">
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><circle cx="6" cy="6" r="1.5"/><line x1="6" y1="0" x2="6" y2="4" stroke="currentColor" stroke-width="1.5"/><line x1="6" y1="8" x2="6" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="0" y1="6" x2="4" y2="6" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="6" x2="12" y2="6" stroke="currentColor" stroke-width="1.5"/></svg>
+          Place X,Y
+        </button>
+        <div style="margin-left:auto;display:flex;gap:3px">
+          <button class="place-btn" onclick="addEl('txt')" title="Add text element">+ txt</button>
+          <button class="place-btn" onclick="addEl('img')" title="Add image element">+ img</button>
+          <button class="place-btn" onclick="addEl('rect')" title="Add rect element">+ rect</button>
+        </div>
+        <span style="font-size:9px;color:var(--txf);margin-left:6px">nudge = ±1px · input in pt</span>
+      </div>
+      <div class="el-body">
+        <div class="el-list" id="elList"></div>
+        <div class="el-editor" id="elEditor">
+          <div class="el-editor-empty">← select an element to edit</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- CHAT PANEL -->
   <div class="chat-panel">
-    <div class="pane-header">
+    <div class="ph">
       <div>
-        <div class="pane-title">AI Assistant</div>
-        <div class="pane-sub">Iterate on this template</div>
+        <div class="ph-title">AI Assistant</div>
+        <div class="ph-sub">Iterate on active template</div>
       </div>
-      <button class="btn-lock" style="display:block;margin-left:auto" onclick="clearChat()">Clear</button>
+      <button class="bsm" style="margin-left:auto" onclick="clearChat()">Clear</button>
     </div>
     <div class="chat-msgs" id="chatMsgs">
-      <div class="chat-empty-state" id="chatEmpty">
-        <div class="icon">🍊</div>
-        <p>Select a template and describe changes — ask for pixel nudges, new elements, or full GAS code snippets.</p>
+      <div class="empty-state">
+        <div style="font-size:22px">🍊</div>
+        <p>Select a template then ask for pixel nudges, coordinate changes, or GAS code snippets.</p>
       </div>
     </div>
     <div class="chat-foot">
-      <div class="chat-hint">Cmd+Enter to send · Ctrl+Enter to send</div>
+      <div style="display:flex;align-items:center;gap:6px;padding-bottom:5px;border-bottom:1px solid var(--b1);margin-bottom:2px;">
+        <span style="font-size:9px;color:var(--txf);white-space:nowrap;">API KEY</span>
+        <input id="apiKey" type="password" placeholder="sk-ant-… (needed when running locally)"
+          style="flex:1;background:var(--s2);border:1px solid var(--b2);border-radius:5px;color:var(--tx);font-size:10px;font-family:var(--mono);padding:4px 7px;outline:none;height:24px;"
+          onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--b2)'">
+      </div>
+      <div class="chat-hint">⌘↵ or Ctrl↵ to send · API key not needed on claude.ai</div>
       <div class="chat-row">
-        <textarea class="chat-input" id="chatInput" placeholder="e.g. Move CLIENT left by 14px, describe the footer spec, generate addFooter() code..." disabled onkeydown="onKey(event)"></textarea>
+        <textarea class="ci" id="chatInput" placeholder="e.g. Move CLIENT left 14px, shift INTRO left 53px, regenerate addFooter()…" disabled onkeydown="onKey(event)"></textarea>
         <button class="send" id="sendBtn" onclick="sendMsg()" disabled>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="transform:rotate(90deg)"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="white" style="transform:rotate(90deg)"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- NEW TEMPLATE MODAL -->
 <div class="modal-bg" id="modal">
   <div class="modal">
     <div class="modal-title">New Template</div>
-    <div class="fgroup">
-      <label class="flabel">Template ID (e.g. 03)</label>
-      <input class="finput" id="nId" placeholder="03" />
+    <div style="display:flex;gap:10px;">
+      <div style="flex:1;">
+        <div class="fg"><label class="fl">Template ID (e.g. 03)</label><input class="fi" id="nId" placeholder="03"/></div>
+        <div class="fg"><label class="fl">Short Name</label><input class="fi" id="nName" placeholder="SectionDivider"/></div>
+        <div class="fg"><label class="fl">Description</label><input class="fi" id="nDesc" placeholder="What this slide type is for"/></div>
+        <div class="fg"><label class="fl">Base on</label><select class="fsel" id="nBase"><option value="">Blank canvas</option></select></div>
+      </div>
+      <div style="width:190px;flex-shrink:0;">
+        <label class="fl">Reference slide PNG</label>
+        <div class="ref-upload-zone" id="refZone" onclick="document.getElementById('upRef').click()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5" style="margin-bottom:5px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+          <div style="font-size:10px;color:var(--txd);">Upload real slide PNG</div>
+          <div style="font-size:9px;color:var(--txf);margin-top:2px;">960×540 export from GSlides</div>
+          <img id="refPreview" class="ref-preview" src="" alt="">
+        </div>
+        <input type="file" id="upRef" accept="image/png,image/jpeg">
+        <button class="analyze-btn" id="analyzeBtn" onclick="analyzeRef()">✦ Analyze with AI</button>
+        <div class="analyze-status" id="analyzeStatus"></div>
+      </div>
     </div>
-    <div class="fgroup">
-      <label class="flabel">Short Name</label>
-      <input class="finput" id="nName" placeholder="SectionDivider" />
-    </div>
-    <div class="fgroup">
-      <label class="flabel">Description</label>
-      <input class="finput" id="nDesc" placeholder="Short description of this slide type" />
-    </div>
-    <div class="fgroup">
-      <label class="flabel">Base on existing template</label>
-      <select class="fselect" id="nBase"><option value="">Blank canvas</option></select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel-m" onclick="closeModal()">Cancel</button>
-      <button class="btn-create-m" onclick="createTpl()">Create</button>
+    <div class="m-acts">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-ok" onclick="createTpl()">Create</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── CONSTANTS ──
-const SW = 720, SH = 405;
+// ── SCALE TRUTH ──
+// GAS coordinate space: POINTS (pt)
+// Google Slides exports PNG at 960×540px
+// That means: 1pt = 960/720 = 1.3333px  (same as 3px = 1pt → ÷1.333)
+const SW=720, SH=405;
+const EW=960, EH=540;           // export px
+const ES=EW/SW;                  // export scale: pt → px = 1.3333
 
-// ── INITIAL TEMPLATES ──
-const INIT = [
-  {
-    id: '01',
-    name: '01_CoverPage_NO_DeckTitle',
-    short: 'Cover A',
-    status: 'locked',
-    desc: 'Black cover page, no deck title',
-    els: [
-      { t:'bg', lbl:'Background', fill:'#000000' },
-      { t:'img', lbl:'LOGO', x:14, y:15, w:692, h:135, fill:'#161616', stk:'#2a2a2a' },
-      { t:'img', lbl:'Rocky Image', x:272, y:223, w:176, h:130, fill:'#1e1e1e', stk:'#333' },
-      { t:'txt', lbl:'"Creative"', x:10, y:363, w:150, h:35, val:'Creative', fs:22, bold:true, italic:true, col:'#ffffff', align:'left' },
-      { t:'txt', lbl:'"Consultancy"', x:564, y:363, w:150, h:35, val:'Consultancy', fs:22, bold:true, italic:true, col:'#ffffff', align:'right' },
-      { t:'txt', lbl:'Tagline', x:165, y:369, w:390, h:20, val:'Empowering bold brands to grow through\nfuture-led creative thinking', fs:7, col:'#aaaaaa', align:'center' },
-    ]
-  },
-  {
-    id: '02',
-    name: '02_CoverPage_w_DeckTitle',
-    short: 'Cover B',
-    status: 'in-progress',
-    desc: 'Cover page with deck title in footer',
-    els: [
-      { t:'bg', lbl:'Background', fill:'#000000' },
-      { t:'img', lbl:'LOGO', x:14, y:15, w:692, h:135, fill:'#161616', stk:'#2a2a2a' },
-      { t:'img', lbl:'Rocky Image', x:272, y:223, w:176, h:130, fill:'#1e1e1e', stk:'#333' },
-      { t:'txt', lbl:'"Creative"', x:10, y:363, w:150, h:35, val:'Creative', fs:22, bold:true, italic:true, col:'#ffffff', align:'left' },
-      { t:'txt', lbl:'"Consultancy"', x:564, y:363, w:150, h:35, val:'Consultancy', fs:22, bold:true, italic:true, col:'#ffffff', align:'right' },
-      { t:'txt', lbl:'Tagline', x:165, y:369, w:390, h:20, val:'Empowering bold brands to grow through\nfuture-led creative thinking', fs:7, col:'#aaaaaa', align:'center' },
-      { t:'rect', lbl:'Footer Bar', x:0, y:388, w:720, h:17, fill:'#0e0e0e' },
-      { t:'txt', lbl:'CLIENT', x:22.2, y:389, w:60, h:14, val:'CLIENT', fs:5.5, col:'#ffffff', align:'left' },
-      { t:'txt', lbl:'Separator /', x:85, y:389, w:10, h:14, val:'/', fs:5.5, col:'#444', align:'center' },
-      { t:'txt', lbl:'INTRO', x:97.9, y:389, w:100, h:14, val:'INTRO', fs:5.5, col:'#888', align:'left' },
-      { t:'txt', lbl:'Deck Title', x:515.5, y:389, w:180, h:14, val:'VISION AND VALUES WORKSHOP', fs:5.5, col:'#ffffff', align:'right' },
-      { t:'txt', lbl:'Page #', x:693, y:389, w:27, h:14, val:'01', fs:5.5, col:'#666', align:'right' },
-    ]
-  }
-];
 
 // ── STATE ──
-let S = {
-  templates: JSON.parse(JSON.stringify(INIT)),
-  active: '01',
-  selEl: null,
-  chats: { '01': [], '02': [] },
-  loading: false
+let S={
+  templates:[
+    {
+      id:'01',short:'Cover A',status:'in-progress',
+      name:'01_CoverPage_NO_DeckTitle',
+      desc:'Black cover, no footer deck title',
+      hideGlobals:['Footer Bar','CLIENT','/','INTRO','Deck Title','Page Number'],
+      els:[
+        {t:'bg',  lbl:'Background',       fill:'#000000'},
+        {t:'img', lbl:'LB Logo',           x:14,    y:15,  w:692,  h:135, key:'logo'},
+        {t:'img', lbl:'Rocky Photo',       x:272,   y:223, w:176,  h:130, key:'rocky'},
+        {t:'txt', lbl:'"Creative"',        x:10,    y:363, w:150,  h:35,  val:'Creative',    fs:20, bold:true,col:'#ffffff',align:'left',  font:'Inter Tight'},
+        {t:'txt', lbl:'"Consultancy"',     x:564,   y:363, w:150,  h:35,  val:'Consultancy', fs:20, bold:true,col:'#ffffff',align:'right', font:'Inter Tight'},
+        {t:'txt', lbl:'Tagline L1',        x:165,   y:364, w:390,  h:12,  val:'Empowering bold brands to grow through',  fs:8, col:'#aaaaaa',align:'center',font:'Libre Baskerville'},
+        {t:'txt', lbl:'Tagline L2',        x:165,   y:376, w:390,  h:12,  val:'future-led creative thinking.',            fs:8, col:'#aaaaaa',align:'center',font:'Libre Baskerville'},
+      ]
+    },
+    {
+      id:'02',short:'Cover B',status:'in-progress',
+      name:'02_CoverPage_w_DeckTitle',
+      desc:'Cover with client / section / deck title footer',
+      hideGlobals:[],
+      els:[
+        {t:'bg',  lbl:'Background',        fill:'#000000'},
+      ]
+    }
+  ],
+  active:'01',selEl:null,
+  selGlobal:null,
+  editingGlobals:false,
+  chats:{'01':[],'02':[]},
+  loading:false,
+  imgs:{logo:null,rocky:null},
+  globals:[
+    {t:'rect',lbl:'Footer Bar',   x:0,     y:388, w:720, h:17,  fill:'#0d0d0d'},
+    {t:'txt', lbl:'CLIENT',       x:22.2,  y:389, w:62,  h:14,  val:'CLIENT', fs:5,col:'#ffffff',align:'left', font:'DM Mono'},
+    {t:'txt', lbl:'/',            x:84,    y:389, w:10,  h:14,  val:'/',      fs:5,col:'#3a3a3a',align:'center',font:'DM Mono'},
+    {t:'txt', lbl:'INTRO',        x:97.9,  y:389, w:110, h:14,  val:'INTRO',  fs:5,col:'#777777',align:'left', font:'DM Mono'},
+    {t:'txt', lbl:'Deck Title',   x:515.5, y:389, w:177, h:14,  val:'VISION AND VALUES WORKSHOP',fs:5,col:'#ffffff',align:'right',font:'DM Mono'},
+    {t:'txt', lbl:'Page Number',  x:693,   y:389, w:27,  h:14,  val:'01',     fs:5,col:'#555555',align:'right',font:'DM Mono'},
+  ]
 };
 
-// ── CANVAS ──
-const canvas = document.getElementById('slide');
-const ctx = canvas.getContext('2d');
-let CW = 600, CH = 338, SC = CW / SW;
+// ── REFERENCE IMAGE (for new template AI analysis) ──
+let refImageB64=null;
 
-function resizeCanvas() {
-  const wrap = canvas.parentElement;
-  const maxW = wrap.clientWidth - 48;
-  const maxH = wrap.clientHeight - 48;
-  const r = SW / SH;
-  let w = maxW, h = w / r;
-  if (h > maxH) { h = maxH; w = h * r; }
-  CW = Math.round(w); CH = Math.round(h); SC = CW / SW;
-  canvas.width = CW; canvas.height = CH;
+function setupRefUpload(){
+  document.getElementById('upRef').addEventListener('change',e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      refImageB64=ev.target.result.split(',')[1]; // base64 only
+      const prev=document.getElementById('refPreview');
+      prev.src=ev.target.result; prev.classList.add('show');
+      document.getElementById('refZone').classList.add('has-img');
+      document.getElementById('analyzeBtn').style.display='block';
+      document.getElementById('analyzeStatus').textContent='Image ready — click Analyze';
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+async function analyzeRef(){
+  const apiKey=(document.getElementById('apiKey').value||'').trim();
+  if(!apiKey){
+    document.getElementById('analyzeStatus').textContent='⚠ Paste your API key in the chat panel first';
+    return;
+  }
+  if(!refImageB64){
+    document.getElementById('analyzeStatus').textContent='⚠ Upload a reference PNG first';
+    return;
+  }
+
+  const btn=document.getElementById('analyzeBtn');
+  btn.disabled=true; btn.textContent='Analyzing…';
+  document.getElementById('analyzeStatus').textContent='Sending to Claude Vision…';
+
+  const prompt=`You are analyzing a Google Slides slide exported as a 960×540px PNG.
+The slide coordinate system is 720×405pt. Scale: 960px = 720pt, so 1px = 0.75pt.
+
+Look carefully at this slide and identify every visible element: text blocks, image areas, rectangles/dividers, and the background.
+
+For each element return a JSON object with these fields:
+  t: "bg" | "txt" | "img" | "rect"
+  lbl: short descriptive name (e.g. "Headline", "Footer Bar", "Logo Area")
+  x: left edge in PT (convert from pixel position × 0.75)
+  y: top edge in PT
+  w: width in PT
+  h: height in PT
+  val: (txt only) exact text content you can read
+  fs: (txt only) estimated font size in PT
+  font: (txt only) best guess — one of: "Inter Tight", "Libre Baskerville", "DM Mono"
+  bold: (txt only) true/false
+  italic: (txt only) true/false
+  col: (txt only) hex color e.g. "#ffffff"
+  align: (txt only) "left" | "center" | "right"
+  fill: (rect/bg only) hex color
+
+Return ONLY a valid JSON array of element objects, nothing else. No markdown, no explanation.
+Background element must always be first with t:"bg".
+Image areas should use t:"img" with a descriptive lbl.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-opus-4-5',
+        max_tokens:2000,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/png',data:refImageB64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+    const data=await res.json();
+    const raw=data.content?.[0]?.text||'';
+    // strip any accidental markdown fences
+    const clean=raw.replace(/```json|```/g,'').trim();
+    const els=JSON.parse(clean);
+    // store for createTpl to pick up
+    window._pendingEls=els;
+    document.getElementById('analyzeStatus').textContent=`✓ Found ${els.length} elements — click Create`;
+    btn.textContent='Re-analyze';
+    btn.disabled=false;
+  }catch(err){
+    document.getElementById('analyzeStatus').textContent=`Error: ${err.message}`;
+    btn.textContent='✦ Analyze with AI';
+    btn.disabled=false;
+  }
+}
+function setupUploads(){
+  [['Logo','logo'],['Rocky','rocky']].forEach(([cap,key])=>{
+    document.getElementById('up'+cap).addEventListener('change',e=>{
+      const f=e.target.files[0]; if(!f) return;
+      const r=new FileReader();
+      r.onload=ev=>{
+        const img=new Image();
+        img.onload=()=>{
+          S.imgs[key]=img;
+          const th=document.getElementById('thumb'+cap);
+          th.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:2px;">`;
+          document.getElementById(key+'Name').textContent=f.name;
+          document.getElementById(key+'Hint').textContent='Loaded ✓';
+          draw();
+        };
+        img.src=ev.target.result;
+      };
+      r.readAsDataURL(f);
+    });
+  });
+}
+
+function renderTo(c,scale,hlEl){
+  const g=c.getContext('2d');
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl){g.fillStyle='#111';g.fillRect(0,0,c.width,c.height);return;}
+
+  // draw template elements
+  const allEls=tpl.els;
+  for(const e of allEls){
+    drawEl(g,e,scale);
+  }
+
+  // draw globals on top — skip any hidden for this template
+  const hidden=tpl.hideGlobals||[];
+  for(const e of S.globals){
+    if(hidden.includes(e.lbl)) continue;
+    drawEl(g,e,scale);
+  }
+
+  // highlight overlay — works for both template els and globals
+  const hlList = S.editingGlobals
+    ? (S.selGlobal!==null ? [S.globals[S.selGlobal]] : [])
+    : (hlEl!==null&&hlEl!==undefined ? [tpl.els[hlEl]] : []);
+
+  for(const e of hlList){
+    if(!e||e.t==='bg') continue;
+    const hx=(e.x||0)*scale, hy=(e.y||0)*scale;
+    const hw=(e.w||SW)*scale, hh=(e.h||SH)*scale;
+    g.save();
+    g.strokeStyle='#f97316'; g.lineWidth=1.5; g.setLineDash([3,2]);
+    g.strokeRect(hx,hy,hw,hh);
+    g.setLineDash([]);
+    // label chip
+    const lbl=e.lbl||e.t;
+    const chipPad=4, chipH=13;
+    g.font=`600 9px "Inter Tight",sans-serif`;
+    const chipW=g.measureText(lbl).width+chipPad*2;
+    g.fillStyle='#f97316';
+    g.fillRect(hx,hy-chipH-2,chipW,chipH);
+    g.fillStyle='#fff'; g.textAlign='left'; g.textBaseline='middle';
+    g.fillText(lbl,hx+chipPad,hy-chipH/2-2);
+    g.restore();
+  }
+}
+
+function drawEl(g,e,scale){
+  const px=(e.x||0)*scale, py=(e.y||0)*scale;
+  const pw=(e.w||SW)*scale, ph=(e.h||SH)*scale;
+  switch(e.t){
+    case 'bg':
+      g.fillStyle=e.fill||'#000';
+      g.fillRect(0,0,g.canvas.width,g.canvas.height);
+      break;
+    case 'rect':
+      g.fillStyle=e.fill||'#111';
+      g.fillRect(px,py,pw,ph);
+      break;
+    case 'img':{
+      const src=e.key?S.imgs[e.key]:null;
+      if(src){
+        g.drawImage(src,px,py,pw,ph);
+      }else{
+        g.fillStyle='#181818'; g.fillRect(px,py,pw,ph);
+        g.strokeStyle='#2c2c2c'; g.lineWidth=1; g.strokeRect(px,py,pw,ph);
+        g.strokeStyle='#242424'; g.lineWidth=0.5;
+        g.beginPath();g.moveTo(px,py);g.lineTo(px+pw,py+ph);g.stroke();
+        g.beginPath();g.moveTo(px+pw,py);g.lineTo(px,py+ph);g.stroke();
+        g.save();
+        const lfs=Math.min(Math.max(8,ph*0.1),11);
+        g.font=`400 ${Math.max(6,lfs*(scale/ES))}px "Inter Tight",sans-serif`;
+        g.fillStyle='#383838'; g.textAlign='center'; g.textBaseline='middle';
+        g.fillText(`[ ${e.lbl||''} — upload above ]`,px+pw/2,py+ph/2);
+        g.restore();
+      }
+      break;
+    }
+    case 'txt':{
+      g.save();
+      const fspx=(e.fs||10)*scale;
+      const fontFamily=e.font||'-apple-system,Helvetica Neue,Arial,sans-serif';
+      let fstr='';
+      if(e.italic) fstr+='italic ';
+      fstr+=(e.bold?'700':'400')+' ';
+      fstr+=`${fspx}px "${fontFamily}"`;
+      g.font=fstr;
+      g.fillStyle=e.col||'#fff';
+      g.textBaseline='middle';
+      const lines=(e.val||'').split('\n');
+      const lh=fspx*1.25;
+      const baseY=py+ph/2-lh*lines.length/2+lh/2;
+      if(e.align==='right'){
+        g.textAlign='right';
+        lines.forEach((l,i)=>g.fillText(l,px+pw,baseY+i*lh));
+      }else if(e.align==='center'){
+        g.textAlign='center';
+        lines.forEach((l,i)=>g.fillText(l,px+pw/2,baseY+i*lh));
+      }else{
+        g.textAlign='left';
+        lines.forEach((l,i)=>g.fillText(l,px,baseY+i*lh));
+      }
+      g.restore();
+      break;
+    }
+  }
+}
+
+// ── PREVIEW CANVAS ──
+const pvCanvas=document.getElementById('slide');
+let CW=700,CH=394,SC=CW/SW;
+
+function resizeCanvas(){
+  const wrap=pvCanvas.parentElement;
+  const mw=wrap.clientWidth-40, mh=wrap.clientHeight-40;
+  let w=mw,h=w*(SH/SW);
+  if(h>mh){h=mh;w=h*(SW/SH);}
+  CW=Math.round(w); CH=Math.round(h); SC=CW/SW;
+  pvCanvas.width=CW; pvCanvas.height=CH;
   draw();
 }
 
-function draw() {
-  const tpl = S.templates.find(t => t.id === S.active);
-  if (!tpl) { ctx.fillStyle = '#111'; ctx.fillRect(0,0,CW,CH); return; }
-  ctx.clearRect(0,0,CW,CH);
+function draw(){
+  renderTo(pvCanvas,SC,S.selEl);
+  document.getElementById('cInfo').textContent=`preview ${CW}×${CH}  ·  export 960×540px`;
+}
 
-  for (let i = 0; i < tpl.els.length; i++) {
-    const e = tpl.els[i];
-    const x = (e.x||0)*SC, y = (e.y||0)*SC;
-    const w = (e.w||SW)*SC, h = (e.h||SH)*SC;
+window.addEventListener('resize',resizeCanvas);
 
-    if (e.t === 'bg') {
-      ctx.fillStyle = e.fill || '#000';
-      ctx.fillRect(0,0,CW,CH);
-    } else if (e.t === 'rect') {
-      ctx.fillStyle = e.fill || '#111';
-      ctx.fillRect(x,y,w,h);
-    } else if (e.t === 'img') {
-      ctx.fillStyle = e.fill || '#1a1a1a';
-      ctx.fillRect(x,y,w,h);
-      if (e.stk) { ctx.strokeStyle = e.stk; ctx.lineWidth = 0.5; ctx.strokeRect(x,y,w,h); }
-      ctx.save();
-      ctx.fillStyle = '#3a3a3a';
-      const fsize = Math.min(Math.max(7, h*0.13), 13);
-      ctx.font = `${fsize}px -apple-system, sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(e.lbl || '', x+w/2, y+h/2);
-      ctx.restore();
-    } else if (e.t === 'txt') {
-      ctx.save();
-      const fsize = Math.max(5.5, (e.fs||10) * SC * 1.5);
-      let fstr = '';
-      if (e.italic) fstr += 'italic ';
-      if (e.bold) fstr += 'bold ';
-      fstr += `${fsize}px -apple-system, 'Helvetica Neue', sans-serif`;
-      ctx.font = fstr;
-      ctx.fillStyle = e.col || '#fff';
-      ctx.textBaseline = 'middle';
-      const lines = (e.val||'').split('\n');
-      const lh = fsize * 1.3;
-      const totalH = lh * lines.length;
-      const baseY = y + h/2 - totalH/2 + lh/2;
-      if (e.align === 'right') {
-        ctx.textAlign = 'right';
-        lines.forEach((l,li) => ctx.fillText(l, x+w, baseY + li*lh));
-      } else if (e.align === 'center') {
-        ctx.textAlign = 'center';
-        lines.forEach((l,li) => ctx.fillText(l, x+w/2, baseY + li*lh));
-      } else {
-        ctx.textAlign = 'left';
-        lines.forEach((l,li) => ctx.fillText(l, x, baseY + li*lh));
+// ── PLACE MODE (click canvas to set x,y of selected element) ──
+let placeMode=false;
+
+function togglePlaceMode(){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(S.selEl===null){alert('Select an element first.');return;}
+  if(tpl&&tpl.status==='locked'){alert('Unlock the template first.');return;}
+  placeMode=!placeMode;
+  const btn=document.getElementById('placeBtn');
+  const cv=document.getElementById('slide');
+  btn.classList.toggle('active',placeMode);
+  btn.textContent=placeMode?'✕ Cancel Place':'Place X,Y';
+  cv.classList.toggle('place-mode',placeMode);
+}
+
+function canvasPtFromEvent(e){
+  const r=pvCanvas.getBoundingClientRect();
+  const px=e.clientX-r.left, py=e.clientY-r.top;
+  return {x:Math.round((px/SC)*100)/100, y:Math.round((py/SC)*100)/100,
+          px:Math.round(px), py:Math.round(py)};
+}
+
+pvCanvas.addEventListener('mousemove',e=>{
+  const ch=document.getElementById('crosshair');
+  if(!placeMode){ch.style.display='none';return;}
+  const r=pvCanvas.getBoundingClientRect();
+  const {x,y}=canvasPtFromEvent(e);
+  ch.style.display='block';
+  ch.style.left=(e.clientX-r.left+pvCanvas.getBoundingClientRect().left-document.getElementById('canvasWrap').getBoundingClientRect().left+10)+'px';
+  ch.style.top=(e.clientY-r.top+pvCanvas.getBoundingClientRect().top-document.getElementById('canvasWrap').getBoundingClientRect().top-24)+'px';
+  ch.textContent=`x:${x.toFixed(1)}  y:${y.toFixed(1)} pt`;
+});
+
+pvCanvas.addEventListener('mouseleave',()=>{
+  document.getElementById('crosshair').style.display='none';
+});
+
+pvCanvas.addEventListener('click',e=>{
+  if(placeMode){
+    // place mode handled separately below
+    return;
+  }
+  const tpl=S.templates.find(t=>t.id===S.active); if(!tpl) return;
+  const {x,y}=canvasPtFromEvent(e);
+
+  // hit test template elements (reverse order = top first)
+  for(let i=tpl.els.length-1;i>=0;i--){
+    const el=tpl.els[i];
+    if(el.t==='bg') continue;
+    const ex=el.x||0, ey=el.y||0, ew=el.w||SW, eh=el.h||SH;
+    if(x>=ex&&x<=ex+ew&&y>=ey&&y<=ey+eh){
+      if(S.editingGlobals){ S.editingGlobals=false; renderGlobalList(); }
+      S.selEl=S.selEl===i?null:i;
+      S.selGlobal=null;
+      renderElList(); draw(); return;
+    }
+  }
+
+  // hit test globals (if editing globals mode or as fallback)
+  const hidden=tpl.hideGlobals||[];
+  for(let i=S.globals.length-1;i>=0;i--){
+    const el=S.globals[i];
+    if(hidden.includes(el.lbl)) continue;
+    const ex=el.x||0, ey=el.y||0, ew=el.w||SW, eh=el.h||SH;
+    if(x>=ex&&x<=ex+ew&&y>=ey&&y<=ey+eh){
+      S.editingGlobals=true;
+      S.selGlobal=i; S.selEl=null;
+      const btn=document.getElementById('btnGlobEdit');
+      btn.textContent='Done'; btn.style.borderColor='var(--acc)'; btn.style.color='var(--acc)';
+      renderGlobalList(); renderGlobalEditor(); draw(); return;
+    }
+  }
+
+  // clicked empty space — deselect
+  S.selEl=null; S.selGlobal=null;
+  renderElList(); draw();
+});
+
+pvCanvas.addEventListener('click',e=>{
+  if(!placeMode) return;
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  const {x,y}=canvasPtFromEvent(e);
+  tpl.els[S.selEl].x=x;
+  tpl.els[S.selEl].y=y;
+  placeMode=false;
+  const btn=document.getElementById('placeBtn');
+  btn.classList.remove('active');
+  btn.textContent='Place X,Y';
+  pvCanvas.classList.remove('place-mode');
+  document.getElementById('crosshair').style.display='none';
+  renderElList(); draw();
+},true); // capture phase so it runs before the select handler
+
+// ── EXPORT ──
+function exportPNG(){
+  const c=document.createElement('canvas');
+  c.width=EW; c.height=EH;
+  renderTo(c,ES,null);
+  const tpl=S.templates.find(t=>t.id===S.active);
+  const fname=`LB_${tpl.id}_${tpl.short.replace(/\s+/g,'_')}_960x540.png`;
+  const a=document.createElement('a');
+  a.download=fname; a.href=c.toDataURL('image/png'); a.click();
+}
+
+function slugify(s){
+  return (s||'x').replace(/[^a-zA-Z0-9]/g,'_').replace(/^_+|_+$/g,'').replace(/__+/g,'_').toLowerCase()||'el';
+}
+
+function exportGAS(){
+  const ts=new Date().toISOString().slice(0,16).replace('T',' ');
+  const out=[];
+
+  out.push(`// ${'═'.repeat(60)}`);
+  out.push(`// LB DECK BUILDER — Template Library Export`);
+  out.push(`// Generated: ${ts}`);
+  out.push(`// Canvas: 720×405pt  |  Scale: 3px=1pt  |  PNG export: 960×540px`);
+  out.push(`// ${'═'.repeat(60)}`);
+  out.push(``);
+  out.push(`// ── TEMPLATE LIBRARY JSON`);
+  out.push(`// Paste this into Tool 2 (Deck Builder) as the template source`);
+  out.push(`const LB_TEMPLATE_LIBRARY = ${JSON.stringify(S.templates.map(({id,name,short,status,desc,els})=>({id,name,short,status,desc,els})),null,2)};`);
+  out.push(``);
+  out.push(`// ${'─'.repeat(60)}`);
+  out.push(`// SLIDE BUILD FUNCTIONS`);
+  out.push(`// Each function builds one slide type onto an existing GAS slide object.`);
+  out.push(`// Prerequisites in your main script:`);
+  out.push(`//   txt(slide,x,y,w,h,content,fontSize,fontFamily,bold,italic,color,align,bg)`);
+  out.push(`//   addFooter(slide,pageNum,sectionName,deckTitle,clientName)`);
+  out.push(`// ${'─'.repeat(60)}`);
+  out.push(``);
+
+  for(const tpl of S.templates){
+    out.push(`// Template ${tpl.id} — ${tpl.name} [${tpl.status}]`);
+    out.push(`// ${tpl.desc}`);
+    out.push(`function buildSlide${tpl.id}(slide, pageNum, sectionName, deckTitle, clientName) {`);
+    out.push(`  var SW = 720;`);
+    out.push(``);
+
+    const footerEls=tpl.els.filter(e=>e.lbl&&(e.lbl.includes('Footer')||e.lbl.includes('CLIENT')||e.lbl.includes('INTRO')||e.lbl.includes('Deck Title')||e.lbl.includes('Page Number')||e.lbl.includes('/') && e.t==='txt'));
+    const bodyEls=tpl.els.filter(e=>!footerEls.includes(e));
+
+    for(const e of bodyEls){
+      const v=n=>+(n||0).toFixed(2);
+      if(e.t==='bg'){
+        out.push(`  // Background`);
+        out.push(`  slide.getBackground().setSolidFill('${(e.fill||'#000000').replace('#','')}');`);
+      } else if(e.t==='rect'){
+        const id=slugify(e.lbl||'rect');
+        out.push(`  // ${e.lbl||'Rect'}`);
+        out.push(`  var ${id} = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, ${v(e.x)}, ${v(e.y)}, ${v(e.w)}, ${v(e.h)});`);
+        out.push(`  ${id}.getFill().setSolidFill('${(e.fill||'#111111').replace('#','')}');`);
+        out.push(`  ${id}.getBorder().setTransparent();`);
+      } else if(e.t==='img'){
+        out.push(`  // ${e.lbl||'Image'} — swap placeholder URL with real asset`);
+        out.push(`  // slide.insertImage(ASSETS['${e.key||'img'}'], ${v(e.x)}, ${v(e.y)}, ${v(e.w)}, ${v(e.h)});`);
+      } else if(e.t==='txt'){
+        const font=e.font||'Inter Tight';
+        const bold=e.bold?'true':'false';
+        const italic=e.italic?'true':'false';
+        const col=(e.col||'#ffffff').replace('#','');
+        const align=e.align==='right'?'SlidesApp.ParagraphAlignment.END':
+                     e.align==='center'?'SlidesApp.ParagraphAlignment.CENTER':
+                     'SlidesApp.ParagraphAlignment.START';
+        out.push(`  // ${e.lbl||'Text'}`);
+        out.push(`  txt(slide, ${v(e.x)}, ${v(e.y)}, ${v(e.w)}, ${v(e.h)}, '${(e.val||'').replace(/'/g,"\\'")}', ${+(e.fs||10).toFixed(1)}, '${font}', ${bold}, ${italic}, '${col}', ${align});`);
       }
-      ctx.restore();
+      out.push(``);
     }
+
+    if(footerEls.length){
+      out.push(`  // Footer — uses addFooter helper`);
+      out.push(`  addFooter(slide, pageNum, sectionName, deckTitle, clientName);`);
+      out.push(``);
+    }
+
+    out.push(`}`);
+    out.push(``);
   }
 
-  // highlight selected element
-  if (S.selEl !== null) {
-    const e = tpl.els[S.selEl];
-    if (e && e.t !== 'bg') {
-      ctx.save();
-      ctx.strokeStyle = '#F97316';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4,3]);
-      ctx.strokeRect((e.x||0)*SC-1.5, (e.y||0)*SC-1.5, (e.w||SW)*SC+3, (e.h||SH)*SC+3);
-      ctx.setLineDash([]);
-      ctx.restore();
-    }
+  out.push(`// ${'─'.repeat(60)}`);
+  out.push(`// MASTER DISPATCHER`);
+  out.push(`// Call from your main deck builder loop`);
+  out.push(`function buildSlide(slide, slideNum, pageNum, sectionName, deckTitle, clientName) {`);
+  out.push(`  switch (String(slideNum)) {`);
+  for(const tpl of S.templates){
+    out.push(`    case '${tpl.id}': buildSlide${tpl.id}(slide, pageNum, sectionName, deckTitle, clientName); break;`);
   }
+  out.push(`    default: Logger.log('No template for slideNum: ' + slideNum);`);
+  out.push(`  }`);
+  out.push(`}`);
+  out.push(``);
+  out.push(`// END OF EXPORT — ${S.templates.length} template(s)`);
+
+  const blob=new Blob([out.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.download=`lb_templates_${ts.replace(/[: ]/g,'-')}.gs`;
+  a.href=URL.createObjectURL(blob); a.click();
+  URL.revokeObjectURL(a.href);
 }
 
-window.addEventListener('resize', resizeCanvas);
-
-// ── RENDER TEMPLATE LIST ──
-function renderList() {
-  const el = document.getElementById('tplList');
-  el.innerHTML = S.templates.map(t => `
-    <div class="tpl-item ${t.id===S.active?'active':''}" onclick="selectTpl('${t.id}')">
-      <div class="tpl-item-row">
-        <span class="tpl-name">${t.short}</span>
+// ── SIDEBAR ──
+function renderList(){
+  document.getElementById('tplList').innerHTML=S.templates.map(t=>`
+    <div class="tpl ${t.id===S.active?'active':''}" onclick="selectTpl('${t.id}')">
+      <div class="tpl-row">
+        <span class="tpl-n">${t.short}</span>
         <span class="tpl-id">#${t.id}</span>
+        <button class="tpl-analyze" title="Upload screenshot → AI recomp" onclick="event.stopPropagation();triggerSidebarAnalyze('${t.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+        </button>
+        <button class="tpl-analyze" title="Delete template" onclick="deleteTpl('${t.id}',event)" style="color:#ef4444">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+        </button>
       </div>
-      <div class="tpl-meta">
-        <div class="dot ${t.status}"></div>
-        <span class="tpl-status">${t.status.replace('-',' ')}</span>
-      </div>
+      <div class="tpl-meta"><div class="dot ${t.status}"></div><span class="tpl-st">${t.status.replace('-',' ')}</span></div>
     </div>`).join('');
+  // hidden file inputs per template
+  let inps=document.getElementById('sidebarUploads');
+  if(!inps){inps=document.createElement('div');inps.id='sidebarUploads';inps.style.display='none';document.body.appendChild(inps);}
+  inps.innerHTML=S.templates.map(t=>`<input type="file" id="sideUp_${t.id}" accept="image/png,image/jpeg" onchange="onSidebarUpload(event,'${t.id}')">`).join('');
 }
 
-// ── RENDER ELEMENT LIST ──
-function renderElList() {
-  const tpl = S.templates.find(t => t.id === S.active);
-  if (!tpl) return;
-  const el = document.getElementById('elList');
-  el.innerHTML = tpl.els.map((e,i) => {
-    const coords = e.t === 'bg' ? '720 × 405 pt' : `${Math.round(e.x||0)},${Math.round(e.y||0)} · ${Math.round(e.w||SW)}×${Math.round(e.h||SH)}`;
-    return `<div class="el-row ${S.selEl===i?'sel':''}" onclick="selEl(${i})">
-      <span class="el-tag">${e.t}</span>
-      <span class="el-label">${e.lbl||''}</span>
-      <span class="el-coords">${coords}</span>
+// ── SIDEBAR PER-TEMPLATE ANALYZE ──
+function triggerSidebarAnalyze(tplId){
+  document.getElementById(`sideUp_${tplId}`).click();
+}
+
+async function onSidebarUpload(e, tplId){
+  const f=e.target.files[0]; if(!f) return;
+  const apiKey=(document.getElementById('apiKey').value||'').trim();
+  if(!apiKey){
+    alert('Paste your Anthropic API key in the chat panel first (bottom right).');
+    e.target.value=''; return;
+  }
+
+  // switch to that template so user sees what's happening
+  selectTpl(tplId);
+  const tpl=S.templates.find(t=>t.id===tplId);
+  if(!tpl) return;
+
+  // show status in chat
+  if(!S.chats[tplId]) S.chats[tplId]=[];
+  S.chats[tplId].push({role:'assistant',content:`📸 Analyzing reference image for **${tpl.short}**…`});
+  renderChat();
+
+  const b64=await new Promise(res=>{
+    const r=new FileReader();
+    r.onload=ev=>res(ev.target.result.split(',')[1]);
+    r.readAsDataURL(f);
+  });
+
+  const knownFonts=`Known brand fonts: "Inter Tight" (bold, used for large display text like "Creative" / "Consultancy"), "Libre Baskerville" (regular, used for taglines), "DM Mono" (used for footer metadata like CLIENT, INTRO, deck title, page number).`;
+
+  const prompt=`You are analyzing a Google Slides slide exported as a PNG.
+The slide coordinate system is 720×405pt. The PNG may be any size — estimate positions proportionally.
+If the image is 960×540px: 1px = 0.75pt. Scale all positions accordingly.
+
+${knownFonts}
+
+Look at this slide carefully and identify EVERY visible element: backgrounds, rectangles/dividers, text blocks, and image placeholder areas.
+
+For EACH element return a JSON object:
+  t: "bg" | "rect" | "txt" | "img"
+  lbl: short descriptive name
+  x: left edge in pt (float, 2 decimal places)
+  y: top edge in pt
+  w: width in pt
+  h: height in pt
+  fill: (bg/rect) hex color e.g. "#0d0d0d"
+  val: (txt) exact visible text
+  fs: (txt) font size in pt — be precise, small footer text is ~5pt, taglines ~8pt, display text ~20pt
+  font: (txt) one of: "Inter Tight", "Libre Baskerville", "DM Mono"
+  bold: (txt) true/false
+  italic: (txt) true/false
+  col: (txt) hex color
+  align: (txt) "left" | "center" | "right"
+  key: (img) "logo" if it looks like a logo area, "rocky" if a photo/person area, otherwise omit
+
+Return ONLY a valid JSON array. No markdown, no explanation. Background must be first with t:"bg".`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-opus-4-5',max_tokens:2500,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:f.type||'image/png',data:b64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+    const data=await res.json();
+    const raw=(data.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+    const els=JSON.parse(raw);
+    tpl.els=els;
+    S.chats[tplId].push({role:'assistant',content:`✓ Recomped **${tpl.short}** — found ${els.length} elements. Pixel-push from here.`});
+    S.selEl=null;
+    renderList(); renderElList(); draw(); renderChat();
+  }catch(err){
+    S.chats[tplId].push({role:'assistant',content:`Error analyzing image: ${err.message}`});
+    renderChat();
+  }
+  e.target.value='';
+}
+
+// ── GLOBAL ELEMENTS ──
+function promoteToGlobal(){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  const e=tpl.els[S.selEl];
+  if(e.t==='bg'){alert("Can't promote background to global.");return;}
+  // check not already in globals by label
+  if(S.globals.find(g=>g.lbl===e.lbl)){
+    if(!confirm(`A global named "${e.lbl}" already exists. Replace it?`)) return;
+    S.globals=S.globals.filter(g=>g.lbl!==e.lbl);
+  }
+  S.globals.push(JSON.parse(JSON.stringify(e)));
+  // remove from this template
+  tpl.els.splice(S.selEl,1);
+  S.selEl=null;
+  renderGlobalList(); renderElList(); draw();
+}
+
+function toggleHideGlobal(lbl){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl) return;
+  if(!tpl.hideGlobals) tpl.hideGlobals=[];
+  const i=tpl.hideGlobals.indexOf(lbl);
+  if(i===-1) tpl.hideGlobals.push(lbl);
+  else tpl.hideGlobals.splice(i,1);
+  renderGlobalList(); draw();
+}
+
+function renderGlobalList(){
+  const hidden=(S.active&&S.templates.find(t=>t.id===S.active)?.hideGlobals)||[];
+  const el=document.getElementById('globalList');
+
+  el.innerHTML=S.globals.map((e,i)=>{
+    const isHidden=hidden.includes(e.lbl);
+    const isSel=S.editingGlobals&&S.selGlobal===i;
+    return `<div style="display:flex;align-items:center;gap:4px;padding:3px 6px;border-radius:5px;
+        background:${isSel?'rgba(249,115,22,.15)':'transparent'};opacity:${isHidden?.45:1}">
+      <div style="flex:1;display:flex;align-items:center;gap:4px;cursor:pointer" onclick="selGlobal(${i})">
+        <span style="font-size:9px;font-family:var(--mono);color:var(--txf);background:var(--s2);padding:1px 4px;border-radius:3px">${e.t}</span>
+        <span style="font-size:10px;color:${isSel?'var(--acc)':'var(--txd)'}">${e.lbl||e.t}</span>
+      </div>
+      ${S.active?`<button onclick="toggleHideGlobal('${e.lbl}')" title="${isHidden?'Show on this template':'Hide on this template'}"
+        style="font-size:9px;padding:1px 5px;border-radius:3px;border:1px solid ${isHidden?'rgba(239,68,68,.4)':'var(--b2)'};
+        background:transparent;color:${isHidden?'#ef4444':'var(--txf)'};cursor:pointer;white-space:nowrap">
+        ${isHidden?'hidden':'show'}</button>`:''}
     </div>`;
   }).join('');
+
+  if(S.editingGlobals){
+    el.innerHTML+=`<div style="display:flex;gap:3px;padding:3px 6px;margin-top:2px">
+      <button onclick="addGlobal('txt')" style="flex:1;font-size:9px;padding:3px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">+txt</button>
+      <button onclick="addGlobal('rect')" style="flex:1;font-size:9px;padding:3px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">+rect</button>
+    </div>`;
+  }
 }
 
-// ── SELECT TEMPLATE ──
-function selectTpl(id) {
-  S.active = id; S.selEl = null;
-  const t = S.templates.find(t => t.id === id);
-  document.getElementById('hTitle').textContent = t.name;
-  document.getElementById('hSub').textContent = t.desc;
-  const badge = document.getElementById('hBadge');
-  badge.style.display = '';
-  badge.className = `badge ${t.status}`;
-  badge.textContent = t.status.replace('-',' ');
-  const btnLock = document.getElementById('btnLock');
-  btnLock.style.display = t.status !== 'locked' ? '' : 'none';
-  btnLock.textContent = t.status === 'locked' ? 'Locked' : 'Lock it';
-  document.getElementById('chatInput').disabled = false;
-  document.getElementById('sendBtn').disabled = false;
+function toggleGlobalEditor(){
+  S.editingGlobals=!S.editingGlobals;
+  S.selGlobal=null;
+  const btn=document.getElementById('btnGlobEdit');
+  btn.textContent=S.editingGlobals?'Done':'Edit';
+  btn.style.borderColor=S.editingGlobals?'var(--acc)':'var(--b2)';
+  btn.style.color=S.editingGlobals?'var(--acc)':'var(--txd)';
+  if(!S.editingGlobals){
+    // return to template element editing
+    renderElList();
+  } else {
+    // show global editor in el-editor panel
+    S.selEl=null;
+    renderElList();
+    renderGlobalEditor();
+  }
+  renderGlobalList(); draw();
+}
+
+function selGlobal(i){
+  if(!S.editingGlobals) return;
+  S.selGlobal=S.selGlobal===i?null:i;
+  renderGlobalList(); renderGlobalEditor(); draw();
+}
+
+function addGlobal(type){
+  const defaults={
+    txt:{t:'txt',lbl:'Global Text',x:20,y:390,w:100,h:14,val:'Text',fs:5,col:'#ffffff',align:'left',font:'DM Mono'},
+    rect:{t:'rect',lbl:'Global Rect',x:0,y:388,w:720,h:17,fill:'#0d0d0d'},
+  };
+  S.globals.push({...defaults[type]});
+  S.selGlobal=S.globals.length-1;
+  renderGlobalList(); renderGlobalEditor(); draw();
+}
+
+function deleteGlobal(){
+  if(S.selGlobal===null) return;
+  if(!confirm(`Delete "${S.globals[S.selGlobal].lbl}"?`)) return;
+  S.globals.splice(S.selGlobal,1);
+  S.selGlobal=null;
+  renderGlobalList(); renderGlobalEditor(); draw();
+}
+
+function nudgeGlobal(prop,deltaPx){
+  if(S.selGlobal===null) return;
+  const e=S.globals[S.selGlobal];
+  e[prop]=Math.round(((e[prop]||0)+deltaPx*PX2PT)*100)/100;
+  renderGlobalEditor(); draw();
+}
+
+function setGlobalVal(prop,val){
+  if(S.selGlobal===null) return;
+  const n=parseFloat(val);
+  if(!isNaN(n)) S.globals[S.selGlobal][prop]=Math.round(n*100)/100;
+  draw();
+}
+
+function setGlobalStr(prop,val){
+  if(S.selGlobal===null) return;
+  S.globals[S.selGlobal][prop]=val;
+  draw();
+}
+
+function renderGlobalEditor(){
+  const ed=document.getElementById('elEditor');
+  if(!S.editingGlobals){ renderEditor(); return; }
+  if(S.selGlobal===null){
+    ed.innerHTML=`<div class="el-editor-empty" style="color:rgba(249,115,22,.5)">← select a global element</div>`;
+    return;
+  }
+  const e=S.globals[S.selGlobal];
+  const fields=[['x','X'],['y','Y'],['w','W'],['h','H']];
+  const posFields=`<div class="ed-grid">${fields.map(([p,lbl])=>`
+    <div class="ed-field"><span class="ed-label">${lbl} (pt)</span>
+      <div class="ed-row">
+        <button class="ed-nudge" onclick="nudgeGlobal('${p}',-1)">−</button>
+        <input class="ed-input" type="number" step="0.1" value="${+(e[p]||0).toFixed(2)}"
+          onchange="setGlobalVal('${p}',this.value)" oninput="setGlobalVal('${p}',this.value)">
+        <button class="ed-nudge" onclick="nudgeGlobal('${p}',1)">+</button>
+      </div>
+    </div>`).join('')}</div>`;
+
+  let typeField='';
+  if(e.t==='txt') typeField=`
+    <div class="ed-field"><span class="ed-label">Content</span>
+      <input class="ed-val-input" type="text" value="${(e.val||'').replace(/"/g,'&quot;')}"
+        oninput="setGlobalStr('val',this.value)">
+    </div>
+    <div class="ed-grid">
+      <div class="ed-field"><span class="ed-label">Font</span>
+        <select class="ed-select" onchange="setGlobalStr('font',this.value)">
+          ${['Inter Tight','Libre Baskerville','DM Mono'].map(f=>`<option value="${f}" ${e.font===f?'selected':''}>${f}</option>`).join('')}
+        </select>
+      </div>
+      <div class="ed-field"><span class="ed-label">Align</span>
+        <select class="ed-select" onchange="setGlobalStr('align',this.value)">
+          ${['left','center','right'].map(a=>`<option value="${a}" ${e.align===a?'selected':''}>${a}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="ed-grid">
+      <div class="ed-field"><span class="ed-label">Size (pt)</span>
+        <div class="ed-row">
+          <button class="ed-nudge" onclick="nudgeGlobal('fs',-1)">−</button>
+          <input class="ed-input" type="number" step="0.5" value="${e.fs||5}"
+            oninput="setGlobalVal('fs',this.value)">
+          <button class="ed-nudge" onclick="nudgeGlobal('fs',1)">+</button>
+        </div>
+      </div>
+      <div class="ed-field"><span class="ed-label">Color</span>
+        <div class="ed-row" style="gap:5px">
+          <input type="color" value="${e.col||'#ffffff'}"
+            style="width:24px;height:24px;border:1px solid var(--b2);border-radius:3px;cursor:pointer;padding:1px;"
+            oninput="setGlobalStr('col',this.value)">
+          <input class="ed-input" style="flex:1" type="text" value="${e.col||'#ffffff'}"
+            oninput="setGlobalStr('col',this.value)">
+        </div>
+      </div>
+    </div>`;
+  if(e.t==='rect') typeField=`
+    <div class="ed-field"><span class="ed-label">Fill color</span>
+      <div class="ed-row" style="gap:5px">
+        <input type="color" value="${e.fill||'#000000'}"
+          style="width:24px;height:24px;border:1px solid var(--b2);border-radius:3px;cursor:pointer;padding:1px;"
+          oninput="setGlobalStr('fill',this.value)">
+        <input class="ed-input" style="flex:1" type="text" value="${e.fill||'#000000'}"
+          oninput="setGlobalStr('fill',this.value)">
+      </div>
+    </div>`;
+
+  ed.innerHTML=`
+    <div class="ed-title" style="color:var(--acc)">🌐 ${e.lbl} <span style="font-size:9px;font-weight:400;color:var(--txf)">global</span></div>
+    <div class="ed-hint" style="margin-bottom:6px;color:rgba(249,115,22,.6)">Appears on every template · exported as master slide element</div>
+    ${posFields}${typeField}
+    <div class="ed-hint" style="margin-top:4px">nudge ± = 1px = ${PX2PT.toFixed(3)}pt</div>
+    <button onclick="deleteGlobal()"
+      style="width:100%;margin-top:8px;padding:5px;font-size:10px;border-radius:5px;cursor:pointer;border:1px solid rgba(239,68,68,.3);background:transparent;color:#ef4444">
+      Remove from globals</button>`;
+}
+
+function renderElList(){
+  const tpl=S.templates.find(t=>t.id===S.active); if(!tpl) return;
+  document.getElementById('elList').innerHTML=tpl.els.map((e,i)=>{
+    return `<div class="el-row ${S.selEl===i&&!S.editingGlobals?'sel':''}" onclick="selEl(${i})">
+      <span class="el-tag">${e.t}</span>
+      <span class="el-lbl">${e.lbl||''}</span>
+    </div>`;
+  }).join('');
+  if(!S.editingGlobals) renderEditor();
+  else renderGlobalEditor();
+}
+
+function selEl(i){
+  if(S.editingGlobals){ toggleGlobalEditor(); return; } // exit global mode first
+  S.selEl=S.selEl===i?null:i;
+  renderElList(); draw();
+}
+
+// 1px in pt = 1/1.333 = 0.75pt
+const PX2PT = 1/1.333;
+
+function nudge(prop, deltaPx) {
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  const e=tpl.els[S.selEl];
+  const cur=parseFloat(e[prop])||0;
+  e[prop]=Math.round((cur + deltaPx*PX2PT)*100)/100;
+  renderElList(); draw();
+}
+
+function setVal(prop, val) {
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  const e=tpl.els[S.selEl];
+  const n=parseFloat(val);
+  if(!isNaN(n)) e[prop]=Math.round(n*100)/100;
+  draw();
+}
+
+function setStrVal(prop, val) {
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  tpl.els[S.selEl][prop]=val;
+  draw();
+}
+
+function changeElType(newType){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  const e=tpl.els[S.selEl];
+  const old=e.t;
+  e.t=newType;
+  // carry over sensible defaults when switching
+  if(newType==='txt' && !e.val) e.val='Text';
+  if(newType==='txt' && !e.fs)  e.fs=10;
+  if(newType==='txt' && !e.col) e.col='#ffffff';
+  if(newType==='txt' && !e.font) e.font='Inter Tight';
+  if(newType==='txt' && !e.align) e.align='left';
+  if(newType==='img' && !e.key) e.key='logo';
+  if(newType==='rect' && !e.fill) e.fill='#111111';
+  if(newType==='bg')  { delete e.x; delete e.y; delete e.w; delete e.h; }
+  renderElList(); draw();
+}
+
+function splitEl(n){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  const e=tpl.els[S.selEl];
+  const slotW=Math.round((e.w/n)*100)/100;
+  const gap=0; // no gap — nudge after if needed
+  const newEls=[];
+  for(let i=0;i<n;i++){
+    newEls.push({...JSON.parse(JSON.stringify(e)),
+      lbl:`${e.lbl||'img'} ${i+1}`,
+      x:Math.round((e.x + i*(slotW+gap))*100)/100,
+      w:slotW
+    });
+  }
+  tpl.els.splice(S.selEl,1,...newEls);
+  S.selEl=null;
+  renderElList(); draw();
+}
+
+function deleteEl(){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  const e=tpl.els[S.selEl];
+  if(e.t==='bg'){alert("Can't delete the background.");return;}
+  if(!confirm(`Delete "${e.lbl||e.t}"?`)) return;
+  tpl.els.splice(S.selEl,1);
+  S.selEl=null;
+  renderElList(); draw();
+}
+
+function addEl(type){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl) return;
+  const defaults={
+    txt:{t:'txt',lbl:'New Text',x:20,y:20,w:200,h:20,val:'Text',fs:10,col:'#ffffff',align:'left',font:'Inter Tight'},
+    img:{t:'img',lbl:'New Image',x:20,y:20,w:120,h:80,key:'logo'},
+    rect:{t:'rect',lbl:'New Rect',x:20,y:20,w:200,h:10,fill:'#111111'},
+  };
+  tpl.els.push({...defaults[type]});
+  S.selEl=tpl.els.length-1;
+  renderElList(); draw();
+}
+
+function renderEditor(){
+  const ed=document.getElementById('elEditor');
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null){
+    ed.innerHTML=`<div class="el-editor-empty">← select an element to edit</div>`;
+    return;
+  }
+  const e=tpl.els[S.selEl];
+  const locked=tpl.status==='locked';
+  const ro=locked?'readonly':'';
+  const dis=locked?'disabled':'';
+
+  // ── Type switcher ──
+  const types=['bg','txt','img','rect'];
+  const typeRow=!locked?`
+    <div class="ed-field" style="margin-bottom:6px">
+      <span class="ed-label">Element type</span>
+      <div style="display:flex;gap:4px;margin-top:3px">
+        ${types.map(t=>`<button onclick="changeElType('${t}')"
+          style="flex:1;padding:3px;font-size:9px;font-family:var(--mono);border-radius:4px;cursor:pointer;border:1px solid ${e.t===t?'var(--acc)':'var(--b2)'};background:${e.t===t?'rgba(249,115,22,.15)':'transparent'};color:${e.t===t?'var(--acc)':'var(--txd)'}"
+          >${t}</button>`).join('')}
+      </div>
+    </div>`:'';
+
+  // ── Position fields ──
+  let posFields='';
+  if(e.t!=='bg'){
+    const fields=[['x','X'],['y','Y'],['w','W'],['h','H']];
+    posFields=`<div class="ed-grid">
+      ${fields.map(([p,lbl])=>`
+        <div class="ed-field">
+          <span class="ed-label">${lbl} (pt)</span>
+          <div class="ed-row">
+            <button class="ed-nudge" ${dis} onclick="nudge('${p}',-1)" title="-1px">−</button>
+            <input class="ed-input" type="number" step="0.1" value="${+(e[p]||0).toFixed(2)}"
+              ${ro} onchange="setVal('${p}',this.value)" oninput="setVal('${p}',this.value)">
+            <button class="ed-nudge" ${dis} onclick="nudge('${p}',1)" title="+1px">+</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  // ── Value / type-specific fields ──
+  let valField='';
+  if(e.t==='txt'){
+    valField=`
+    <div class="ed-field">
+      <span class="ed-label">Text content</span>
+      <input class="ed-val-input" type="text" value="${(e.val||'').replace(/"/g,'&quot;')}"
+        ${ro} oninput="setStrVal('val',this.value)">
+    </div>
+    <div class="ed-grid">
+      <div class="ed-field">
+        <span class="ed-label">Font</span>
+        <select class="ed-select" ${dis} onchange="setStrVal('font',this.value)">
+          ${['Inter Tight','Libre Baskerville','DM Mono'].map(f=>`<option value="${f}" ${e.font===f?'selected':''}>${f}</option>`).join('')}
+        </select>
+      </div>
+      <div class="ed-field">
+        <span class="ed-label">Align</span>
+        <select class="ed-select" ${dis} onchange="setStrVal('align',this.value)">
+          ${['left','center','right'].map(a=>`<option value="${a}" ${e.align===a?'selected':''}>${a}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="ed-grid">
+      <div class="ed-field">
+        <span class="ed-label">Size (pt)</span>
+        <div class="ed-row">
+          <button class="ed-nudge" ${dis} onclick="nudge('fs',-1)">−</button>
+          <input class="ed-input" type="number" step="0.5" value="${e.fs||10}"
+            ${ro} oninput="setVal('fs',this.value)">
+          <button class="ed-nudge" ${dis} onclick="nudge('fs',1)">+</button>
+        </div>
+      </div>
+      <div class="ed-field">
+        <span class="ed-label">Bold / Italic</span>
+        <div class="ed-row" style="gap:5px;margin-top:3px">
+          <button onclick="toggleBool('bold')"
+            style="flex:1;padding:3px 0;font-size:10px;font-weight:700;border-radius:4px;cursor:pointer;border:1px solid ${e.bold?'var(--acc)':'var(--b2)'};background:${e.bold?'rgba(249,115,22,.15)':'transparent'};color:${e.bold?'var(--acc)':'var(--txd)'}" ${dis}>B</button>
+          <button onclick="toggleBool('italic')"
+            style="flex:1;padding:3px 0;font-size:10px;font-style:italic;border-radius:4px;cursor:pointer;border:1px solid ${e.italic?'var(--acc)':'var(--b2)'};background:${e.italic?'rgba(249,115,22,.15)':'transparent'};color:${e.italic?'var(--acc)':'var(--txd)'}" ${dis}>I</button>
+        </div>
+      </div>
+    </div>
+    <div class="ed-field">
+      <span class="ed-label">Color</span>
+      <div class="ed-row" style="gap:5px">
+        <input type="color" value="${e.col||'#ffffff'}" ${dis}
+          style="width:24px;height:24px;border:1px solid var(--b2);border-radius:3px;cursor:pointer;background:none;padding:1px;"
+          oninput="setStrVal('col',this.value)">
+        <input class="ed-input" style="flex:1" type="text" value="${e.col||'#ffffff'}"
+          ${ro} oninput="setStrVal('col',this.value)">
+      </div>
+    </div>`;
+  }
+
+  if(e.t==='img'){
+    valField=`
+    <div class="ed-field">
+      <span class="ed-label">Asset key</span>
+      <select class="ed-select" ${dis} onchange="setStrVal('key',this.value)">
+        ${['logo','rocky'].map(k=>`<option value="${k}" ${e.key===k?'selected':''}>${k}</option>`).join('')}
+      </select>
+    </div>
+    ${!locked?`<div class="ed-field" style="margin-top:4px">
+      <span class="ed-label">Split into</span>
+      <div style="display:flex;gap:4px;margin-top:3px">
+        ${[2,3,4].map(n=>`<button onclick="splitEl(${n})"
+          style="flex:1;padding:4px;font-size:10px;border-radius:4px;cursor:pointer;border:1px solid var(--b2);background:transparent;color:var(--txd)">÷${n}</button>`).join('')}
+      </div>
+      <div class="ed-hint" style="margin-top:3px">Splits this box into ${[2,3,4].join('/')} equal side-by-side images</div>
+    </div>`:''}`;
+  }
+
+  if(e.t==='rect'){
+    valField=`<div class="ed-field">
+      <span class="ed-label">Fill color</span>
+      <div class="ed-row" style="gap:5px">
+        <input type="color" value="${e.fill||'#000000'}" ${dis}
+          style="width:24px;height:24px;border:1px solid var(--b2);border-radius:3px;cursor:pointer;background:none;padding:1px;"
+          oninput="setStrVal('fill',this.value)">
+        <input class="ed-input" style="flex:1" type="text" value="${e.fill||'#000000'}"
+          ${ro} oninput="setStrVal('fill',this.value)">
+      </div>
+    </div>`;
+  }
+
+  if(e.t==='bg'){
+    valField=`<div class="ed-field">
+      <span class="ed-label">Background color</span>
+      <div class="ed-row" style="gap:5px">
+        <input type="color" value="${e.fill||'#000000'}" ${dis}
+          style="width:24px;height:24px;border:1px solid var(--b2);border-radius:3px;cursor:pointer;background:none;padding:1px;"
+          oninput="setStrVal('fill',this.value)">
+        <input class="ed-input" style="flex:1" type="text" value="${e.fill||'#000000'}"
+          ${ro} oninput="setStrVal('fill',this.value)">
+      </div>
+    </div>`;
+  }
+
+  const lockNote=locked?`<div class="ed-hint" style="color:#555;margin-bottom:6px">🔒 Unlock template to edit</div>`:'';
+  const deleteBtn=(!locked&&e.t!=='bg')?`
+    <div style="display:flex;gap:4px;margin-top:8px">
+      <button onclick="promoteToGlobal()"
+        style="flex:1;padding:5px;font-size:10px;border-radius:5px;cursor:pointer;border:1px solid rgba(249,115,22,.4);background:rgba(249,115,22,.08);color:var(--acc)">
+        ↑ Make Global</button>
+      <button onclick="deleteEl()"
+        style="flex:1;padding:5px;font-size:10px;border-radius:5px;cursor:pointer;border:1px solid rgba(239,68,68,.3);background:transparent;color:#ef4444">
+        Delete</button>
+    </div>`:'';
+
+  ed.innerHTML=`
+    <div class="ed-title">${e.lbl||e.t}</div>
+    ${lockNote}
+    ${typeRow}
+    ${posFields}
+    ${valField}
+    ${e.t!=='bg'?`<div class="ed-hint" style="margin-top:4px">nudge ± = 1px = ${PX2PT.toFixed(3)}pt · inputs in pt</div>`:''}
+    ${deleteBtn}
+  `;
+}
+
+function toggleBool(prop){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  tpl.els[S.selEl][prop]=!tpl.els[S.selEl][prop];
+  renderElList(); draw();
+}
+
+function startRename(field){
+  if(!S.active) return;
+  const t=S.templates.find(t=>t.id===S.active);
+  if(!t) return;
+  const elId=field==='name'?'hTitle':'hSub';
+  const el=document.getElementById(elId);
+  const current=field==='name'?t.short:t.desc;
+  // swap div for input
+  const inp=document.createElement('input');
+  inp.value=current;
+  inp.style.cssText=`background:transparent;border:none;border-bottom:1px solid var(--acc);outline:none;color:var(--tx);font-size:${field==='name'?'13px':'11px'};font-weight:${field==='name'?'600':'400'};width:100%;font-family:inherit;padding:0;`;
+  el.innerHTML='';
+  el.appendChild(inp);
+  inp.focus(); inp.select();
+  function commit(){
+    const val=inp.value.trim()||current;
+    if(field==='name'){
+      t.short=val;
+      t.name=`${t.id}_${val.replace(/\s+/g,'_')}`;
+      el.textContent=val;
+    } else {
+      t.desc=val;
+      el.textContent=val;
+    }
+    el.style.cursor='text';
+    renderList();
+  }
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();inp.blur();}
+    if(e.key==='Escape'){inp.value=current;inp.blur();}
+  });
+}
+
+function selectTpl(id){
+  // fade out canvas first, then swap template, then fade in
+  pvCanvas.classList.add('switching');
+  setTimeout(()=>{
+    S.active=id; S.selEl=null;
+    // cancel place mode if active
+    if(placeMode){
+      placeMode=false;
+      pvCanvas.classList.remove('place-mode');
+      document.getElementById('placeBtn').classList.remove('active');
+      document.getElementById('placeBtn').textContent='Place X,Y';
+    }
+    const t=S.templates.find(t=>t.id===id);
+    document.getElementById('hTitle').textContent=t.name;
+    document.getElementById('hSub').textContent=t.desc;
+    const badge=document.getElementById('hBadge');
+    badge.style.display=''; badge.className=`badge ${t.status}`; badge.textContent=t.status.replace('-',' ');
+    document.getElementById('btnExport').style.display='';
+    const bl=document.getElementById('btnLock');
+    const bu=document.getElementById('btnUnlock');
+    bl.style.display=t.status!=='locked'?'':'none';
+    bu.style.display=t.status==='locked'?'':'none';
+    document.getElementById('chatInput').disabled=false;
+    document.getElementById('sendBtn').disabled=false;
+    renderList(); renderElList(); renderGlobalList(); resizeCanvas(); renderChat();
+    pvCanvas.classList.remove('switching');
+  }, 150);
+}
+
+function deleteTpl(id, e){
+  e.stopPropagation();
+  const t=S.templates.find(t=>t.id===id);
+  if(!t) return;
+  if(!confirm(`Delete template "${t.short}"? This cannot be undone.`)) return;
+  S.templates=S.templates.filter(t=>t.id!==id);
+  delete S.chats[id];
+  if(S.active===id){
+    S.active=null; S.selEl=null;
+    document.getElementById('hTitle').textContent='Select a template';
+    document.getElementById('hSub').textContent='—';
+    document.getElementById('hBadge').style.display='none';
+    document.getElementById('btnExport').style.display='none';
+    document.getElementById('btnLock').style.display='none';
+    document.getElementById('btnUnlock').style.display='none';
+    document.getElementById('chatInput').disabled=true;
+    document.getElementById('sendBtn').disabled=true;
+    document.getElementById('elList').innerHTML='';
+    document.getElementById('elEditor').innerHTML='<div class="el-editor-empty">← select an element to edit</div>';
+    pvCanvas.width=pvCanvas.width; // clear canvas
+  }
   renderList();
-  renderElList();
-  draw();
-  renderChat();
 }
 
-function selEl(i) {
-  S.selEl = S.selEl === i ? null : i;
-  renderElList();
-  draw();
-}
-
-function toggleLock() {
-  const t = S.templates.find(t => t.id === S.active);
-  if (!t || t.status === 'locked') return;
-  if (!confirm(`Lock "${t.name}"? This marks it as final.`)) return;
-  t.status = 'locked';
+function toggleLock(){
+  const t=S.templates.find(t=>t.id===S.active);
+  if(!t) return;
+  if(t.status==='locked'){
+    if(!confirm(`Unlock "${t.name}"? You can edit it again.`)) return;
+    t.status='in-progress';
+  } else {
+    if(!confirm(`Lock "${t.name}"? Marks it as final.`)) return;
+    t.status='locked';
+  }
   selectTpl(S.active);
 }
 
 // ── CHAT ──
-const SYS = `You are an expert Google Apps Script (GAS) developer helping build the LB Deck Builder — a tool generating branded Google Slides for LB (a creative consultancy).
+const SYS=`You are an expert Google Apps Script (GAS) developer iterating on the LB Deck Builder — a tool generating branded Google Slides decks for LB (a creative consultancy).
 
-TECH SPECS:
-- Slide canvas: 720×405pt (SW=720, SH=405)
-- Scale: 3px = 1pt → pixel value ÷ 1.333 = pt
-- Origin: top-left
+COORDINATE SPACE: All positions in POINTS (pt). Scale: 3px = 1pt → px ÷ 1.333 = pt.
+Canvas: 720×405pt. Google Slides PNG export = 960×540px (= 720pt × 1.333 px/pt).
 
-KEY HELPERS:
+GAS HELPERS:
   txt(slide, x, y, w, h, content, fontSize, fontFamily, bold, italic, color, align, bg)
   addFooter(slide, pageNum, sectionName, deckTitle, clientName)
-  buildSlide(slideNum, pageNum)
-  buildSlide02Only()   ← runs only slide 02 for testing
-  buildTestDeck()      ← builds full test deck
+  buildSlide02Only()   ← isolated slide 02 test
+  buildTestDeck()      ← full deck
 
 TEMPLATE 01 (LOCKED — never modify):
-  bg: black · Logo: x=14 y=15 w=692 h=135 · Rocky img: x=272 y=223 w=176 h=130
-  "Creative": x=10 y=363 w=150 h=35 · 22pt italic bold white · align left
-  "Consultancy": x=SW-156 y=363 w=150 h=35 · 22pt italic bold white · align right
-  Tagline: x=165 y=369 w=SW-330 h=20 · 7pt light · center
+  bg: #000  ·  Logo: x=14 y=15 w=692 h=135  ·  Rocky: x=272 y=223 w=176 h=130
+  "Creative": x=10 y=363 w=150 h=35  22pt bold italic white  left
+  "Consultancy": x=SW-156 y=363 w=150 h=35  22pt bold italic white  right
+  Tagline: 2 lines, x=165 y=364/376 w=390  7pt #aaa center
 
 TEMPLATE 02 (IN PROGRESS):
-  Same as 01 + footer bar at y=388, h=17 (#0e0e0e)
-  Footer elements (all ~5.5pt):
-    CLIENT:     x≈22.2   w=60   white   left
-    /:          x≈85     w=10   #444    center
-    INTRO:      x≈97.9   w=100  #888    left
-    Deck Title: x=SW-204.5 w=180 white  right  (e.g. "VISION AND VALUES WORKSHOP")
-    Page #:     x=SW-27  w=27   #666    right
+  Same base as 01, plus:
+  Footer bar: x=0 y=388 w=720 h=17  fill #0d0d0d
+  CLIENT:       x=22.2   w=62   5.5pt #fff  left
+  /:            x=84     w=10   5.5pt #3a3a3a  center
+  INTRO/section:x=97.9   w=110  5.5pt #777  left
+  Deck Title:   x=515.5  w=177  5.5pt #fff  right  (e.g. "VISION AND VALUES WORKSHOP")
+  Page #:       x=693    w=27   5.5pt #555  right
 
-When iterating: give precise pt values, show before/after, provide copy-paste GAS code.
-Keep responses concise and actionable. Format code in triple-backtick blocks.`;
+When adjusting: state old pt → new pt. Always provide ready-to-paste GAS code. Keep responses concise.`;
 
-function renderChat() {
-  const id = S.active;
-  const msgs = S.chats[id] || [];
-  const el = document.getElementById('chatMsgs');
-  if (!msgs.length) {
-    el.innerHTML = `<div class="chat-empty-state" id="chatEmpty">
-      <div class="icon">🍊</div>
-      <p>Chat about positioning, pixel nudges, or ask for GAS code snippets for <strong>${S.templates.find(t=>t.id===id)?.short||'this template'}</strong>.</p>
-    </div>`;
+function renderChat(){
+  const id=S.active;
+  const msgs=S.chats[id]||[];
+  const el=document.getElementById('chatMsgs');
+  if(!msgs.length){
+    const tpl=S.templates.find(t=>t.id===id);
+    el.innerHTML=`<div class="empty-state"><div style="font-size:22px">🍊</div>
+      <p>Describe position tweaks or ask for GAS code for <strong>${tpl?.short||'this template'}</strong>. Export PNG to compare against Google Slides.</p></div>`;
     return;
   }
-  el.innerHTML = msgs.map(m => {
-    let html = m.content
+  el.innerHTML=msgs.map(m=>{
+    let h=m.content
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/```[\w]*\n([\s\S]*?)```/g, (_,c) => `<pre>${c}</pre>`)
-      .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+      .replace(/```[\w]*\n?([\s\S]*?)```/g,(_,c)=>`<pre>${c.trim()}</pre>`)
+      .replace(/`([^`\n]+)`/g,'<code>$1</code>')
       .replace(/\n/g,'<br>');
-    return `<div class="msg ${m.role}">${html}</div>`;
+    return `<div class="msg ${m.role}">${h}</div>`;
   }).join('');
-  if (S.loading) {
-    el.innerHTML += `<div class="typing-bubble"><span></span><span></span><span></span></div>`;
-  }
-  el.scrollTop = el.scrollHeight;
+  if(S.loading) el.innerHTML+=`<div class="typing"><span></span><span></span><span></span></div>`;
+  el.scrollTop=el.scrollHeight;
 }
 
-async function sendMsg() {
-  const inp = document.getElementById('chatInput');
-  const txt = inp.value.trim();
-  if (!txt || S.loading) return;
-  const id = S.active;
-  if (!S.chats[id]) S.chats[id] = [];
-  S.chats[id].push({ role:'user', content: txt });
-  inp.value = '';
-  S.loading = true;
-  document.getElementById('sendBtn').disabled = true;
+async function sendMsg(){
+  const inp=document.getElementById('chatInput');
+  const txt=inp.value.trim(); if(!txt||S.loading) return;
+  const id=S.active;
+  if(!S.chats[id]) S.chats[id]=[];
+  S.chats[id].push({role:'user',content:txt});
+  inp.value=''; S.loading=true;
+  document.getElementById('sendBtn').disabled=true;
   renderChat();
-
-  const tpl = S.templates.find(t => t.id === id);
-  const ctx2 = `\n\nACTIVE TEMPLATE: ${tpl.name} (${tpl.status})\nElements: ${tpl.els.map(e=>e.lbl||e.t).join(', ')}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: SYS + ctx2,
-        messages: S.chats[id]
-      })
+  const tpl=S.templates.find(t=>t.id===id);
+  const ctx2=`\n\nACTIVE TEMPLATE: ${tpl.name} (${tpl.status})\nElements:\n${tpl.els.map(e=>`  ${e.lbl||e.t}: x=${+(e.x||0).toFixed(1)} y=${+(e.y||0).toFixed(1)} w=${+(e.w||SW).toFixed(1)} h=${+(e.h||SH).toFixed(1)}${e.val?' val="'+e.val+'"':''}`).join('\n')}`;
+  try{
+    const apiKey=(document.getElementById('apiKey').value||'').trim();
+    const headers={'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'};
+    if(apiKey) headers['x-api-key']=apiKey;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers,
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYS+ctx2,messages:S.chats[id]})
     });
-    const data = await res.json();
-    const reply = data.content?.[0]?.text || 'No response received.';
-    S.chats[id].push({ role:'assistant', content: reply });
-  } catch(err) {
-    S.chats[id].push({ role:'assistant', content:`Error: ${err.message}` });
+    const data=await res.json();
+    S.chats[id].push({role:'assistant',content:data.content?.[0]?.text||'No response.'});
+  }catch(err){
+    S.chats[id].push({role:'assistant',content:`Error: ${err.message}`});
   }
-  S.loading = false;
-  document.getElementById('sendBtn').disabled = false;
+  S.loading=false;
+  document.getElementById('sendBtn').disabled=false;
   renderChat();
 }
 
-function clearChat() {
-  if (!confirm('Clear this template\'s chat history?')) return;
-  S.chats[S.active] = [];
-  renderChat();
-}
+function clearChat(){if(!confirm('Clear chat?')) return; S.chats[S.active]=[]; renderChat();}
+function onKey(e){if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();sendMsg();}}
 
-function onKey(e) {
-  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); sendMsg(); }
-}
-
-// ── NEW TEMPLATE MODAL ──
-function openModal() {
-  const sel = document.getElementById('nBase');
-  sel.innerHTML = '<option value="">Blank canvas</option>' +
-    S.templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+// ── MODAL ──
+function openModal(){
+  const sel=document.getElementById('nBase');
+  sel.innerHTML='<option value="">Blank canvas</option>'+S.templates.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
   document.getElementById('modal').classList.add('open');
   document.getElementById('nId').focus();
 }
-function closeModal() { document.getElementById('modal').classList.remove('open'); }
-function createTpl() {
-  const id = document.getElementById('nId').value.trim();
-  const name = document.getElementById('nName').value.trim();
-  const desc = document.getElementById('nDesc').value.trim();
-  const baseId = document.getElementById('nBase').value;
-  if (!id || !name) { alert('ID and name are required.'); return; }
-  if (S.templates.find(t => t.id === id)) { alert(`ID "${id}" already exists.`); return; }
-  let els = [{ t:'bg', lbl:'Background', fill:'#000000' }];
-  if (baseId) { const base = S.templates.find(t => t.id === baseId); if (base) els = JSON.parse(JSON.stringify(base.els)); }
-  S.templates.push({ id, name:`${id.padStart(2,'0')}_${name}`, short:name, status:'draft', desc: desc||'New template', els });
-  S.chats[id] = [];
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+function createTpl(){
+  const id=document.getElementById('nId').value.trim();
+  const name=document.getElementById('nName').value.trim();
+  const desc=document.getElementById('nDesc').value.trim();
+  const baseId=document.getElementById('nBase').value;
+  if(!id||!name){alert('ID and name required.');return;}
+  if(S.templates.find(t=>t.id===id)){alert(`ID "${id}" exists.`);return;}
+
+  let els;
+  if(window._pendingEls&&window._pendingEls.length){
+    els=window._pendingEls;  // AI-analyzed elements
+  } else if(baseId){
+    const b=S.templates.find(t=>t.id===baseId);
+    els=b?JSON.parse(JSON.stringify(b.els)):[{t:'bg',lbl:'Background',fill:'#000000'}];
+  } else {
+    els=[{t:'bg',lbl:'Background',fill:'#000000'}];
+  }
+
+  S.templates.push({id,name:`${id}_${name}`,short:name,status:'draft',desc:desc||'New template',els});
+  S.chats[id]=[];
   closeModal();
-  document.getElementById('nId').value=''; document.getElementById('nName').value=''; document.getElementById('nDesc').value='';
-  renderList();
-  selectTpl(id);
+  // reset modal state
+  ['nId','nName','nDesc'].forEach(i=>document.getElementById(i).value='');
+  refImageB64=null; window._pendingEls=null;
+  document.getElementById('refPreview').classList.remove('show');
+  document.getElementById('refZone').classList.remove('has-img');
+  document.getElementById('analyzeBtn').style.display='none';
+  document.getElementById('analyzeStatus').textContent='';
+  document.getElementById('upRef').value='';
+  renderList(); selectTpl(id);
 }
-document.getElementById('modal').addEventListener('click', e => { if (e.target.id==='modal') closeModal(); });
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 
 // ── INIT ──
+setupUploads();
+setupRefUpload();
 renderList();
-selectTpl('01');
-resizeCanvas();
+renderGlobalList();
+// Wait for Google Fonts to load before first draw so canvas uses real fonts
+document.fonts.ready.then(() => {
+  selectTpl('01');
+  resizeCanvas();
+});
 </script>
 </body>
 </html>
