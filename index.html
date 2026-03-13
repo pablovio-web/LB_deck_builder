@@ -293,9 +293,47 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
     </div>
 
     <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="refOverlay" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0.5;display:none"></canvas>
       <canvas id="slide"></canvas>
       <div class="c-crosshair" id="crosshair"></div>
       <div class="c-info" id="cInfo"></div>
+    </div>
+    <!-- Magnifier lens -->
+    <canvas id="magnifier" style="position:fixed;border:2px solid var(--acc);border-radius:50%;box-shadow:0 4px 20px rgba(0,0,0,.6);pointer-events:none;display:none;z-index:9999"></canvas>
+    <div style="display:flex;align-items:center;gap:10px;padding:5px 10px;border-top:1px solid var(--b1);background:var(--bg2);font-size:10px;color:var(--txf);flex-shrink:0;flex-wrap:wrap">
+      <span style="color:var(--txd);font-weight:600">Stage:</span>
+      <label style="display:flex;align-items:center;gap:4px">
+        W <input id="stageW" type="number" value="960" min="100" max="3840" step="1"
+          style="width:56px;background:var(--bg3);border:1px solid var(--b2);color:var(--txd);border-radius:4px;padding:2px 5px;font-size:10px"
+          onchange="setStageSize()"> px
+      </label>
+      <span style="color:var(--b2)">×</span>
+      <label style="display:flex;align-items:center;gap:4px">
+        H <input id="stageH" type="number" value="540" min="100" max="2160" step="1"
+          style="width:56px;background:var(--bg3);border:1px solid var(--b2);color:var(--txd);border-radius:4px;padding:2px 5px;font-size:10px"
+          onchange="setStageSize()"> px
+      </label>
+      <button onclick="setStageSize(720,405)" style="padding:2px 7px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer" title="Reset to Google Slides standard">16:9 std</button>
+      <button onclick="setStageSize(1920,1080)" style="padding:2px 7px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">1080p</button>
+      <span style="color:var(--b2);margin:0 2px">|</span>
+      <span style="color:var(--txd);font-weight:600">Ref overlay:</span>
+      <button onclick="document.getElementById('upRefOverlay').click()"
+        style="padding:2px 8px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer" title="Load reference design PNG as bottom layer">
+        ↑ Load PNG
+      </button>
+      <input type="file" id="upRefOverlay" accept="image/*" style="display:none" onchange="loadRefOverlay(event)">
+      <label style="display:flex;align-items:center;gap:5px">
+        <span>Opacity</span>
+        <input type="range" id="refOpacity" min="0" max="100" value="50" step="1"
+          style="width:70px;accent-color:var(--acc)"
+          oninput="setRefOpacity(this.value)" disabled>
+        <span id="refOpacityVal" style="width:24px;text-align:right">50%</span>
+      </label>
+      <button id="btnRefToggle" onclick="toggleRefOverlay()" disabled
+        style="padding:2px 7px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">Hide</button>
+      <span style="color:var(--b2);margin:0 2px">|</span>
+      <span style="color:var(--txf)">⌘M = magnifier · M = off</span>
+      <span style="margin-left:auto;color:var(--txf)" id="stageInfo">export 960×540px</span>
     </div>
     <div class="el-pane">
       <div class="el-head">
@@ -387,9 +425,9 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
 // GAS coordinate space: POINTS (pt)
 // Google Slides exports PNG at 960×540px
 // That means: 1pt = 960/720 = 1.3333px  (same as 3px = 1pt → ÷1.333)
-const SW=720, SH=405;
-const EW=960, EH=540;           // export px
-const ES=EW/SW;                  // export scale: pt → px = 1.3333
+let SW=720, SH=405;
+let EW=960, EH=540;           // export px
+let ES=EW/SW;                  // export scale: pt → px = 1.3333
 
 
 // ── STATE ──
@@ -568,6 +606,8 @@ function setupUploads(){
           document.getElementById(key+'Name').textContent=f.name;
           document.getElementById(key+'Hint').textContent='Loaded ✓';
           draw();
+          // force second redraw in case canvas wasn't ready
+          setTimeout(draw, 100);
         };
         img.src=ev.target.result;
       };
@@ -697,6 +737,21 @@ function drawEl(g,e,scale){
 const pvCanvas=document.getElementById('slide');
 let CW=700,CH=394,SC=CW/SW;
 
+function setStageSize(w, h){
+  // if called with args (preset buttons), update inputs too
+  if(w && h){
+    document.getElementById('stageW').value=w;
+    document.getElementById('stageH').value=h;
+  }
+  const pw=parseInt(document.getElementById('stageW').value)||960;
+  const ph=parseInt(document.getElementById('stageH').value)||540;
+  EW=pw; EH=ph;
+  SW=Math.round(pw/ES*10)/10;
+  SH=Math.round(ph/ES*10)/10;
+  document.getElementById('stageInfo').textContent=`export ${EW}×${EH}px · stage ${SW}×${SH}pt`;
+  resizeCanvas();
+}
+
 function resizeCanvas(){
   const wrap=pvCanvas.parentElement;
   const mw=wrap.clientWidth-40, mh=wrap.clientHeight-40;
@@ -733,7 +788,150 @@ function undo(){
   else document.getElementById('btnUndo').title=`Undo (${history.length} step${history.length===1?'':'s'})`;
 }
 
-// keyboard shortcut ⌘Z / Ctrl+Z
+// ── REFERENCE OVERLAY ──
+let refOverlayImg=null;
+let refOverlayVisible=true;
+
+function loadRefOverlay(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      refOverlayImg=img;
+      const oc=document.getElementById('refOverlay');
+      oc.width=pvCanvas.width; oc.height=pvCanvas.height;
+      const og=oc.getContext('2d');
+      og.clearRect(0,0,oc.width,oc.height);
+      // draw scaled to canvas size
+      og.drawImage(img,0,0,oc.width,oc.height);
+      oc.style.display='';
+      refOverlayVisible=true;
+      document.getElementById('refOpacity').disabled=false;
+      document.getElementById('btnRefToggle').disabled=false;
+      document.getElementById('btnRefToggle').textContent='Hide';
+      setRefOpacity(document.getElementById('refOpacity').value);
+    };
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(f);
+  e.target.value='';
+}
+
+function setRefOpacity(val){
+  document.getElementById('refOverlay').style.opacity=val/100;
+  document.getElementById('refOpacityVal').textContent=val+'%';
+}
+
+function toggleRefOverlay(){
+  if(!refOverlayImg) return;
+  refOverlayVisible=!refOverlayVisible;
+  document.getElementById('refOverlay').style.display=refOverlayVisible?'':'none';
+  document.getElementById('btnRefToggle').textContent=refOverlayVisible?'Hide':'Show';
+}
+
+// keep overlay canvas in sync when preview canvas resizes
+const _origResizeCanvas=resizeCanvas;
+resizeCanvas=function(){
+  _origResizeCanvas();
+  if(refOverlayImg){
+    const oc=document.getElementById('refOverlay');
+    oc.width=pvCanvas.width; oc.height=pvCanvas.height;
+    oc.style.width=pvCanvas.style.width;
+    oc.style.height=pvCanvas.style.height;
+    const og=oc.getContext('2d');
+    og.drawImage(refOverlayImg,0,0,oc.width,oc.height);
+    setRefOpacity(document.getElementById('refOpacity').value);
+  }
+};
+
+// ── MAGNIFIER ──
+const MAG_SIZE=180;      // lens diameter px
+const MAG_ZOOM=4;        // zoom factor
+let magMode=false;
+
+const magCanvas=document.getElementById('magnifier');
+magCanvas.width=MAG_SIZE;
+magCanvas.height=MAG_SIZE;
+const magCtx=magCanvas.getContext('2d');
+
+function setMagMode(on){
+  magMode=on;
+  magCanvas.style.display=on?'block':'none';
+  document.body.style.cursor=on?'none':'';
+}
+
+document.addEventListener('mousemove',e=>{
+  if(!magMode) return;
+  const hw=MAG_SIZE/2;
+  // position lens centered on cursor
+  magCanvas.style.left=(e.clientX-hw)+'px';
+  magCanvas.style.top=(e.clientY-hw)+'px';
+
+  // find canvas position
+  const rect=pvCanvas.getBoundingClientRect();
+  const cx=e.clientX-rect.left;
+  const cy=e.clientY-rect.top;
+
+  // source region on pvCanvas (device pixels)
+  const dpr=window.devicePixelRatio||1;
+  const srcW=MAG_SIZE/MAG_ZOOM;
+  const srcH=MAG_SIZE/MAG_ZOOM;
+  const srcX=(cx*dpr)-(srcW/2);
+  const srcY=(cy*dpr)-(srcH/2);
+
+  magCtx.clearRect(0,0,MAG_SIZE,MAG_SIZE);
+
+  // circular clip
+  magCtx.save();
+  magCtx.beginPath();
+  magCtx.arc(hw,hw,hw-1,0,Math.PI*2);
+  magCtx.clip();
+
+  // draw zoomed region from slide canvas
+  magCtx.drawImage(pvCanvas,
+    srcX, srcY, srcW, srcH,
+    0, 0, MAG_SIZE, MAG_SIZE
+  );
+
+  // crosshair
+  magCtx.strokeStyle='rgba(249,115,22,0.8)';
+  magCtx.lineWidth=1;
+  magCtx.beginPath();
+  magCtx.moveTo(hw,hw-10); magCtx.lineTo(hw,hw+10);
+  magCtx.moveTo(hw-10,hw); magCtx.lineTo(hw+10,hw);
+  magCtx.stroke();
+
+  magCtx.restore();
+
+  // pixel coordinate readout
+  const ptX=(cx/SC).toFixed(1);
+  const ptY=(cy/SC).toFixed(1);
+  magCtx.fillStyle='rgba(0,0,0,0.7)';
+  magCtx.fillRect(0,MAG_SIZE-16,MAG_SIZE,16);
+  magCtx.fillStyle='#f97316';
+  magCtx.font='9px monospace';
+  magCtx.textAlign='center';
+  magCtx.fillText(`${ptX}, ${ptY} pt`,hw,MAG_SIZE-4);
+});
+
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==='m'){
+    const tag=document.activeElement.tagName;
+    if(tag!=='INPUT'&&tag!=='TEXTAREA'){
+      e.preventDefault(); setMagMode(true);
+    }
+  }
+  // M key alone turns off (not in input)
+  if(e.key==='m'&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey){
+    const tag=document.activeElement.tagName;
+    if(tag!=='INPUT'&&tag!=='TEXTAREA'){
+      setMagMode(false);
+    }
+  }
+});
+
+// ⌘Z / Ctrl+Z undo
 document.addEventListener('keydown', e=>{
   if((e.metaKey||e.ctrlKey) && e.key==='z' && !e.shiftKey){
     const tag=document.activeElement.tagName;
@@ -1425,6 +1623,26 @@ function addEl(type){
   renderElList(); draw();
 }
 
+function uploadToEl(e, elIdx){
+  const f=e.target.files[0]; if(!f) return;
+  const tpl=S.templates.find(t=>t.id===S.active); if(!tpl) return;
+  const key=f.name.replace(/\.[^.]+$/,'').replace(/[^a-zA-Z0-9_]/g,'_').toLowerCase();
+  const r=new FileReader();
+  r.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      S.imgs[key]=img;
+      pushHistory();
+      tpl.els[elIdx].key=key;
+      renderElList(); draw();
+      setTimeout(draw,100);
+    };
+    img.src=ev.target.result;
+  };
+  r.readAsDataURL(f);
+  e.target.value='';
+}
+
 function renderEditor(){
   const ed=document.getElementById('elEditor');
   const tpl=S.templates.find(t=>t.id===S.active);
@@ -1537,12 +1755,27 @@ function renderEditor(){
   }
 
   if(e.t==='img'){
+    const idx=S.selEl;
     valField=`
     <div class="ed-field">
       <span class="ed-label">Asset key</span>
-      <select class="ed-select" ${dis} onchange="setStrVal('key',this.value)">
-        ${['logo','lb_logo','x_icon','client_logo','rocky'].map(k=>`<option value="${k}" ${e.key===k?'selected':''}>${k}</option>`).join('')}
+      <select class="ed-select" ${dis} onchange="setStrVal('key',this.value)" id="assetKeySelect">
+        ${['logo','lb_logo','x_icon','client_logo','rocky',...Object.keys(S.imgs).filter(k=>!['logo','lb_logo','x_icon','client_logo','rocky'].includes(k))].map(k=>`<option value="${k}" ${e.key===k?'selected':''}>${k}${S.imgs[k]?' ✓':''}</option>`).join('')}
       </select>
+    </div>
+    <div class="ed-field" style="margin-top:4px">
+      <span class="ed-label">Upload image to this box</span>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:3px">
+        <button onclick="document.getElementById('upElImg').click()"
+          style="flex:1;padding:6px;font-size:10px;border-radius:5px;cursor:pointer;border:1px solid var(--acc);background:rgba(249,115,22,.1);color:var(--acc)">
+          ↑ Upload image…
+        </button>
+        ${S.imgs[e.key]?`<div style="width:40px;height:28px;border-radius:3px;overflow:hidden;border:1px solid var(--b2);flex-shrink:0">
+          <img src="${S.imgs[e.key].src}" style="width:100%;height:100%;object-fit:cover">
+        </div>`:''}
+      </div>
+      <input type="file" id="upElImg" accept="image/*" style="display:none" onchange="uploadToEl(event,${idx})">
+      <div class="ed-hint" style="margin-top:3px">Creates a new asset slot named after the file</div>
     </div>
     ${!locked?`<div class="ed-field" style="margin-top:4px">
       <span class="ed-label">Split into</span>
@@ -1550,7 +1783,6 @@ function renderEditor(){
         ${[2,3,4].map(n=>`<button onclick="splitEl(${n})"
           style="flex:1;padding:4px;font-size:10px;border-radius:4px;cursor:pointer;border:1px solid var(--b2);background:transparent;color:var(--txd)">÷${n}</button>`).join('')}
       </div>
-      <div class="ed-hint" style="margin-top:3px">Splits this box into ${[2,3,4].join('/')} equal side-by-side images</div>
     </div>`:''}`;
   }
 
@@ -1836,12 +2068,51 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
 // ── PERSIST ──
 const SAVE_KEY = 'lb_deck_builder_v1';
 
+// ── Image serialization helpers ──
+function imgsToB64(){
+  const out={};
+  Object.entries(S.imgs).forEach(([k,img])=>{
+    if(!img) return;
+    try{
+      const c=document.createElement('canvas');
+      c.width=img.naturalWidth||img.width;
+      c.height=img.naturalHeight||img.height;
+      c.getContext('2d').drawImage(img,0,0);
+      out[k]=c.toDataURL('image/png');
+    }catch(e){ /* tainted canvas — skip */ }
+  });
+  return out;
+}
+
+function restoreImgs(imgData, cb){
+  if(!imgData||!Object.keys(imgData).length){ cb(); return; }
+  const keys=Object.keys(imgData);
+  let done=0;
+  keys.forEach(k=>{
+    const img=new Image();
+    img.onload=()=>{
+      S.imgs[k]=img;
+      // update sidebar thumb if slot exists
+      const thumbId='thumb'+k.charAt(0).toUpperCase()+k.slice(1);
+      const th=document.getElementById(thumbId);
+      if(th) th.innerHTML=`<img src="${imgData[k]}" style="width:100%;height:100%;object-fit:cover;border-radius:2px;">`;
+      const nameEl=document.getElementById(k+'Name');
+      const hintEl=document.getElementById(k+'Hint');
+      if(hintEl) hintEl.textContent='Loaded ✓';
+      if(++done===keys.length) cb();
+    };
+    img.onerror=()=>{ if(++done===keys.length) cb(); };
+    img.src=imgData[k];
+  });
+}
+
 function saveState(){
   try{
     const payload={
       templates: S.templates,
       globals: S.globals,
-      chats: S.chats
+      chats: S.chats,
+      imgs: imgsToB64()
     };
     localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
     const el=document.getElementById('saveStatus');
@@ -1857,16 +2128,18 @@ function loadState(){
     if(payload.templates) S.templates=payload.templates;
     if(payload.globals)   S.globals=payload.globals;
     if(payload.chats)     S.chats=payload.chats;
+    if(payload.imgs) restoreImgs(payload.imgs, ()=>draw());
     return true;
   }catch(e){ console.warn('loadState failed',e); return false; }
 }
 
 function exportLibrary(){
   const payload={
-    version:1,
+    version:2,
     exported: new Date().toISOString(),
     templates: S.templates,
-    globals: S.globals
+    globals: S.globals,
+    imgs: imgsToB64()
   };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');
@@ -1888,16 +2161,18 @@ function importLibrary(e){
       if(!confirm(`Load ${payload.templates.length} templates from "${f.name}"?\n\nThis will replace your current templates.`)) return;
       S.templates=payload.templates;
       if(payload.globals) S.globals=payload.globals;
-      // rebuild chats index
       S.chats={};
       S.templates.forEach(t=>{ if(!S.chats[t.id]) S.chats[t.id]=[]; });
       S.active=S.templates[0]?.id||null;
       S.selEl=null; S.selGlobal=null;
-      saveState();
-      renderList(); renderGlobalList();
-      if(S.active) selectTpl(S.active);
-      document.getElementById('saveStatus').textContent=`✓ loaded ${S.templates.length} templates`;
-      setTimeout(()=>document.getElementById('saveStatus').textContent='',3000);
+      // restore images first, then render
+      restoreImgs(payload.imgs||{}, ()=>{
+        saveState();
+        renderList(); renderGlobalList();
+        if(S.active) selectTpl(S.active);
+        document.getElementById('saveStatus').textContent=`✓ loaded ${payload.templates.length} templates + images`;
+        setTimeout(()=>document.getElementById('saveStatus').textContent='',3000);
+      });
     }catch(err){ alert('Failed to parse file: '+err.message); }
   };
   r.readAsText(f);
