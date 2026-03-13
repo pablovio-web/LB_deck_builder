@@ -195,16 +195,43 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
 
   <div class="assets-sec">
     <span class="assets-lbl">Slide Assets</span>
-    <div class="asset-row" onclick="document.getElementById('upLogo').click()" title="Upload LB logo PNG">
+    <div class="asset-row" onclick="document.getElementById('upLogo').click()" title="LB monogram (small, used in footer left)">
       <div class="asset-thumb" id="thumbLogo">
-        <svg width="20" height="12" viewBox="0 0 20 12"><rect width="20" height="12" rx="1" fill="#222"/><text x="10" y="9" font-size="5" fill="#444" text-anchor="middle" font-family="sans-serif">LOGO</text></svg>
+        <svg width="20" height="12" viewBox="0 0 20 12"><rect width="20" height="12" rx="1" fill="#222"/><text x="10" y="9" font-size="5" fill="#444" text-anchor="middle" font-family="sans-serif">LB</text></svg>
       </div>
       <div class="asset-info">
-        <div class="asset-name" id="logoName">LB Logo (white)</div>
+        <div class="asset-name" id="logoName">LB Monogram</div>
         <div class="asset-hint" id="logoHint">Click to upload PNG</div>
       </div>
     </div>
-    <div class="asset-row" onclick="document.getElementById('upRocky').click()" title="Upload rocky photo">
+    <div class="asset-row" onclick="document.getElementById('upLbLogo').click()" title="Little Buddy wordmark (center footer)">
+      <div class="asset-thumb" id="thumbLbLogo">
+        <svg width="20" height="12" viewBox="0 0 20 12"><rect width="20" height="12" rx="1" fill="#222"/><text x="10" y="9" font-size="4" fill="#444" text-anchor="middle" font-family="sans-serif">LB logo</text></svg>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name" id="lb_logoName">LB Wordmark</div>
+        <div class="asset-hint" id="lb_logoHint">Click to upload PNG</div>
+      </div>
+    </div>
+    <div class="asset-row" onclick="document.getElementById('upXIcon').click()" title="× separator image (center footer)">
+      <div class="asset-thumb" id="thumbXIcon">
+        <svg width="20" height="12" viewBox="0 0 20 12"><rect width="20" height="12" rx="1" fill="#222"/><text x="10" y="9" font-size="8" fill="#444" text-anchor="middle" font-family="sans-serif">×</text></svg>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name" id="x_iconName">× Icon</div>
+        <div class="asset-hint" id="x_iconHint">Click to upload PNG</div>
+      </div>
+    </div>
+    <div class="asset-row" onclick="document.getElementById('upClientLogo').click()" title="Client logo placeholder (set per deck in Tool 2)">
+      <div class="asset-thumb" id="thumbClientLogo">
+        <svg width="20" height="12" viewBox="0 0 20 12"><rect width="20" height="12" rx="1" fill="#222"/><text x="10" y="9" font-size="4" fill="#444" text-anchor="middle" font-family="sans-serif">CLIENT</text></svg>
+      </div>
+      <div class="asset-info">
+        <div class="asset-name" id="client_logoName">Client Logo</div>
+        <div class="asset-hint" id="client_logoHint">Placeholder — set in Tool 2</div>
+      </div>
+    </div>
+    <div class="asset-row" onclick="document.getElementById('upRocky').click()" title="Rocky photo (Template 01 cover)">
       <div class="asset-thumb" id="thumbRocky">
         <svg width="20" height="14" viewBox="0 0 20 14"><rect width="20" height="14" rx="1" fill="#222"/><circle cx="7" cy="5" r="2.5" fill="#333"/><path d="M0 10 5 7 9 9.5 13 6.5 20 10v4H0z" fill="#2a2a2a"/></svg>
       </div>
@@ -213,12 +240,25 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
         <div class="asset-hint" id="rockyHint">Click to upload PNG/JPG</div>
       </div>
     </div>
-    <input type="file" id="upLogo" accept="image/*">
-    <input type="file" id="upRocky" accept="image/*">
+    <input type="file" id="upLogo" accept="image/*" style="display:none">
+    <input type="file" id="upLbLogo" accept="image/*" style="display:none">
+    <input type="file" id="upXIcon" accept="image/*" style="display:none">
+    <input type="file" id="upClientLogo" accept="image/*" style="display:none">
+    <input type="file" id="upRocky" accept="image/*" style="display:none">
   </div>
 
   <div class="sb-foot">
     <button class="btn-new" onclick="openModal()">+ New Template</button>
+    <div style="display:flex;gap:5px;margin-top:6px">
+      <button onclick="exportLibrary()" style="flex:1;padding:6px;font-size:10px;border-radius:6px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer" title="Save all templates to a JSON file">
+        ↓ Save Library
+      </button>
+      <button onclick="document.getElementById('upLibrary').click()" style="flex:1;padding:6px;font-size:10px;border-radius:6px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer" title="Load templates from a JSON file">
+        ↑ Load Library
+      </button>
+    </div>
+    <input type="file" id="upLibrary" accept=".json" style="display:none" onchange="importLibrary(event)">
+    <div id="saveStatus" style="font-size:9px;color:var(--txf);text-align:center;margin-top:4px;height:12px"></div>
   </div>
 </div>
 
@@ -231,6 +271,9 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
       </div>
       <span class="badge draft" id="hBadge" style="display:none"></span>
       <div class="ph-acts">
+        <button class="bsm" id="btnUndo" onclick="undo()" style="display:none;border-color:rgba(148,163,184,.3);color:var(--txd)" title="Undo last change (⌘Z)">
+          ↩ Undo
+        </button>
         <button class="bsm exp" id="btnExport" onclick="exportPNG()" style="display:none">
           <svg width="10" height="11" viewBox="0 0 12 14" fill="currentColor"><path d="M6 9.5L2 5.5h2.5V1h3v4.5H10L6 9.5zM1 11.5h10v1.5H1z"/></svg>
           Export PNG
@@ -382,14 +425,21 @@ let S={
   editingGlobals:false,
   chats:{'01':[],'02':[]},
   loading:false,
-  imgs:{logo:null,rocky:null},
+  imgs:{logo:null,rocky:null,lb_logo:null,x_icon:null,client_logo:null},
   globals:[
-    {t:'rect',lbl:'Footer Bar',   x:0,     y:388, w:720, h:17,  fill:'#0d0d0d'},
-    {t:'txt', lbl:'CLIENT',       x:22.2,  y:389, w:62,  h:14,  val:'CLIENT', fs:5,col:'#ffffff',align:'left', font:'DM Mono'},
-    {t:'txt', lbl:'/',            x:84,    y:389, w:10,  h:14,  val:'/',      fs:5,col:'#3a3a3a',align:'center',font:'DM Mono'},
-    {t:'txt', lbl:'INTRO',        x:97.9,  y:389, w:110, h:14,  val:'INTRO',  fs:5,col:'#777777',align:'left', font:'DM Mono'},
-    {t:'txt', lbl:'Deck Title',   x:515.5, y:389, w:177, h:14,  val:'VISION AND VALUES WORKSHOP',fs:5,col:'#ffffff',align:'right',font:'DM Mono'},
-    {t:'txt', lbl:'Page Number',  x:693,   y:389, w:27,  h:14,  val:'01',     fs:5,col:'#555555',align:'right',font:'DM Mono'},
+    // ── Footer Bar
+    {t:'rect',lbl:'Footer Bar',    x:0,    y:388,  w:720,   h:17,    fill:'#0d0d0d'},
+    // ── Left: LB Monogram / CLIENT
+    {t:'img', lbl:'LB Monogram',   x:8,    y:390,  w:8.1,   h:9.45,  key:'logo'},
+    {t:'txt', lbl:'/',             x:24,   y:389,  w:8,     h:14,    val:'/', fs:5, col:'#3a3a3a', align:'center', font:'DM Mono'},
+    {t:'txt', lbl:'CLIENT',        x:34,   y:389,  w:70,    h:14,    val:'CLIENT', fs:5, col:'#ffffff', align:'left', font:'DM Mono'},
+    // ── Center: LB Wordmark × Client Logo
+    {t:'img', lbl:'LB Wordmark',   x:268,  y:390,  w:64.96, h:13.88, key:'lb_logo'},
+    {t:'img', lbl:'× Icon',        x:346,  y:390,  w:8.1,   h:8.33,  key:'x_icon'},
+    {t:'img', lbl:'Client Logo',   x:364,  y:390,  w:63.76, h:13.88, key:'client_logo'},
+    // ── Right: SECTION · Page#
+    {t:'txt', lbl:'SECTION',       x:460,  y:389,  w:200,   h:14,    val:'SECTION', fs:5, col:'#777777', align:'left', font:'DM Mono'},
+    {t:'txt', lbl:'Page Number',   x:693,  y:389,  w:27,    h:14,    val:'01', fs:5, col:'#555555', align:'right', font:'DM Mono'},
   ]
 };
 
@@ -432,25 +482,42 @@ The slide coordinate system is 720×405pt. Scale: 960px = 720pt, so 1px = 0.75pt
 
 Look carefully at this slide and identify every visible element: text blocks, image areas, rectangles/dividers, and the background.
 
-For each element return a JSON object with these fields:
+FOOTER RULES — if you see a footer bar at the bottom of the slide, apply these EXACT hardcoded values. Do NOT estimate — use these numbers precisely:
+
+The footer always contains these elements in this order (left to right):
+1. Footer Bar:      { t:"rect", lbl:"Footer Bar",  x:0,    y:388, w:720,  h:17,   fill:"#0d0d0d" }
+2. LB Monogram:     { t:"img",  lbl:"LB Monogram", x:8,    y:390, w:8.1,  h:9.45, key:"logo" }
+3. Slash:           { t:"txt",  lbl:"/",            x:24,   y:389, w:8,    h:14,   val:"/",       fs:5, font:"DM Mono", col:"#3a3a3a", align:"center", bold:false, italic:false }
+4. CLIENT text:     { t:"txt",  lbl:"CLIENT",       x:34,   y:389, w:70,   h:14,   val:"CLIENT",  fs:5, font:"DM Mono", col:"#ffffff", align:"left",   bold:false, italic:false }
+5. LB Wordmark:     { t:"img",  lbl:"LB Wordmark",  x:268,  y:390, w:64.96,h:13.88,key:"lb_logo" }
+6. × Icon:          { t:"img",  lbl:"× Icon",       x:346,  y:390, w:8.1,  h:8.33, key:"x_icon" }
+7. Client Logo:     { t:"img",  lbl:"Client Logo",  x:364,  y:390, w:63.76,h:13.88,key:"client_logo" }
+8. SECTION text:    { t:"txt",  lbl:"SECTION",      x:460,  y:389, w:200,  h:14,   val:"SECTION", fs:5, font:"DM Mono", col:"#777777", align:"left",   bold:false, italic:false }
+9. Page Number:     { t:"txt",  lbl:"Page Number",  x:693,  y:389, w:27,   h:14,   val:"01",      fs:5, font:"DM Mono", col:"#555555", align:"right",  bold:false, italic:false }
+
+All footer text uses font:"DM Mono", fs:5. Do not guess these values — they are always the same.
+Do NOT include footer elements in the main elements array — they are handled as globals. Only include the body elements above the footer.
+
+For each NON-FOOTER element return a JSON object with these fields:
   t: "bg" | "txt" | "img" | "rect"
-  lbl: short descriptive name (e.g. "Headline", "Footer Bar", "Logo Area")
-  x: left edge in PT (convert from pixel position × 0.75)
+  lbl: short descriptive name (e.g. "Headline", "Team Photo", "Divider")
+  x: left edge in PT (pixel position × 0.75)
   y: top edge in PT
   w: width in PT
   h: height in PT
-  val: (txt only) exact text content you can read
+  val: (txt only) exact text content — use \\n for line breaks if text wraps across multiple lines
   fs: (txt only) estimated font size in PT
-  font: (txt only) best guess — one of: "Inter Tight", "Libre Baskerville", "DM Mono"
+  font: (txt only) one of: "Inter Tight", "Libre Baskerville", "DM Mono"
   bold: (txt only) true/false
   italic: (txt only) true/false
   col: (txt only) hex color e.g. "#ffffff"
   align: (txt only) "left" | "center" | "right"
+  lh: (txt only) estimated line height multiplier e.g. 1.0, 1.25, 1.5
   fill: (rect/bg only) hex color
+  key: (img only) descriptive key e.g. "team_photo", "rocky", "logo"
 
 Return ONLY a valid JSON array of element objects, nothing else. No markdown, no explanation.
-Background element must always be first with t:"bg".
-Image areas should use t:"img" with a descriptive lbl.`;
+Background element must always be first with t:"bg".`;
 
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -482,7 +549,13 @@ Image areas should use t:"img" with a descriptive lbl.`;
   }
 }
 function setupUploads(){
-  [['Logo','logo'],['Rocky','rocky']].forEach(([cap,key])=>{
+  [
+    ['Logo','logo','thumbLogo'],
+    ['LbLogo','lb_logo','thumbLbLogo'],
+    ['XIcon','x_icon','thumbXIcon'],
+    ['ClientLogo','client_logo','thumbClientLogo'],
+    ['Rocky','rocky','thumbRocky'],
+  ].forEach(([cap,key,thumbId])=>{
     document.getElementById('up'+cap).addEventListener('change',e=>{
       const f=e.target.files[0]; if(!f) return;
       const r=new FileReader();
@@ -490,7 +563,7 @@ function setupUploads(){
         const img=new Image();
         img.onload=()=>{
           S.imgs[key]=img;
-          const th=document.getElementById('thumb'+cap);
+          const th=document.getElementById(thumbId);
           th.innerHTML=`<img src="${ev.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:2px;">`;
           document.getElementById(key+'Name').textContent=f.name;
           document.getElementById(key+'Hint').textContent='Loaded ✓';
@@ -562,7 +635,19 @@ function drawEl(g,e,scale){
     case 'img':{
       const src=e.key?S.imgs[e.key]:null;
       if(src){
-        g.drawImage(src,px,py,pw,ph);
+        // object-fit: cover — clip to box, center the image
+        g.save();
+        g.beginPath();
+        g.rect(px,py,pw,ph);
+        g.clip();
+        const iw=src.naturalWidth||src.width;
+        const ih=src.naturalHeight||src.height;
+        const scale_w=pw/iw, scale_h=ph/ih;
+        const s=Math.max(scale_w,scale_h);
+        const dw=iw*s, dh=ih*s;
+        const ox=px+(pw-dw)/2, oy=py+(ph-dh)/2;
+        g.drawImage(src,ox,oy,dw,dh);
+        g.restore();
       }else{
         g.fillStyle='#181818'; g.fillRect(px,py,pw,ph);
         g.strokeStyle='#2c2c2c'; g.lineWidth=1; g.strokeRect(px,py,pw,ph);
@@ -590,8 +675,8 @@ function drawEl(g,e,scale){
       g.fillStyle=e.col||'#fff';
       g.textBaseline='middle';
       const lines=(e.val||'').split('\n');
-      const lh=fspx*1.25;
-      const baseY=py+ph/2-lh*lines.length/2+lh/2;
+      const lh=fspx*(e.lh||1.25);
+      const baseY=py+(ph/2)-(lh*(lines.length-1)/2);
       if(e.align==='right'){
         g.textAlign='right';
         lines.forEach((l,i)=>g.fillText(l,px+pw,baseY+i*lh));
@@ -622,9 +707,47 @@ function resizeCanvas(){
   draw();
 }
 
+// ── HISTORY (undo) ──
+const HISTORY_MAX = 50;
+let history = [];
+
+function pushHistory(){
+  history.push(JSON.stringify({templates:S.templates, globals:S.globals}));
+  if(history.length > HISTORY_MAX) history.shift();
+  document.getElementById('btnUndo').style.display='';
+  document.getElementById('btnUndo').title=`Undo (${history.length} step${history.length===1?'':'s'})`;
+}
+
+function undo(){
+  if(!history.length){ alert('Nothing to undo.'); return; }
+  const snap=JSON.parse(history.pop());
+  S.templates=snap.templates;
+  S.globals=snap.globals;
+  // keep active selection valid
+  if(!S.templates.find(t=>t.id===S.active)) S.active=S.templates[0]?.id||null;
+  S.selEl=null; S.selGlobal=null;
+  renderList(); renderGlobalList();
+  if(S.active) selectTpl(S.active);
+  saveState();
+  if(!history.length) document.getElementById('btnUndo').style.display='none';
+  else document.getElementById('btnUndo').title=`Undo (${history.length} step${history.length===1?'':'s'})`;
+}
+
+// keyboard shortcut ⌘Z / Ctrl+Z
+document.addEventListener('keydown', e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==='z' && !e.shiftKey){
+    const tag=document.activeElement.tagName;
+    // don't intercept when typing in an input/textarea
+    if(tag!=='INPUT' && tag!=='TEXTAREA' && tag!=='SELECT'){
+      e.preventDefault(); undo();
+    }
+  }
+});
+
 function draw(){
   renderTo(pvCanvas,SC,S.selEl);
   document.getElementById('cInfo').textContent=`preview ${CW}×${CH}  ·  export 960×540px`;
+  saveState();
 }
 
 window.addEventListener('resize',resizeCanvas);
@@ -753,11 +876,50 @@ function exportGAS(){
   out.push(`const LB_TEMPLATE_LIBRARY = ${JSON.stringify(S.templates.map(({id,name,short,status,desc,els})=>({id,name,short,status,desc,els})),null,2)};`);
   out.push(``);
   out.push(`// ${'─'.repeat(60)}`);
+  out.push(`// HELPER FUNCTIONS — included automatically, paste these into your Apps Script`);
+  out.push(`// ${'─'.repeat(60)}`);
+  out.push(``);
+  out.push(`function txt(slide, x, y, w, h, content, fs, font, bold, italic, col, align, lineSpacing) {`);
+  out.push(`  var shape = slide.insertTextBox(content, x, y, w, h);`);
+  out.push(`  var style = shape.getText().getTextStyle();`);
+  out.push(`  style.setFontSize(fs).setFontFamily(font).setBold(bold).setItalic(italic)`);
+  out.push(`       .setForegroundColor('#' + col);`);
+  out.push(`  shape.getText().getParagraphs().forEach(function(p) {`);
+  out.push(`    p.getRange().getParagraphStyle()`);
+  out.push(`      .setParagraphAlignment(align)`);
+  out.push(`      .setLineSpacing(lineSpacing || 125);`);
+  out.push(`  });`);
+  out.push(`  shape.getBorder().setTransparent();`);
+  out.push(`  shape.getFill().setTransparent();`);
+  out.push(`  return shape;`);
+  out.push(`}`);
+  out.push(``);
+  out.push(`function addFooter(slide, pageNum, sectionName, clientName, assets) {`);
+  out.push(`  // assets = { lb_monogram, lb_logo, x_icon, client_logo } — image blobs passed from Tool 2`);
+  out.push(`  // Footer bar`);
+  out.push(`  var bar = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, 388, 720, 17);`);
+  out.push(`  bar.getFill().setSolidFill('0d0d0d'); bar.getBorder().setTransparent();`);
+  out.push(`  // LB Monogram (8.1×9.45pt)`);
+  out.push(`  if (assets && assets.lb_monogram) slide.insertImage(assets.lb_monogram, 8, 390, 8.1, 9.45);`);
+  out.push(`  // /`);
+  out.push(`  txt(slide, 24, 389, 8, 14, '/', 5, 'DM Mono', false, false, '3a3a3a', SlidesApp.ParagraphAlignment.CENTER, 100);`);
+  out.push(`  // CLIENT name`);
+  out.push(`  txt(slide, 34, 389, 70, 14, clientName || 'CLIENT', 5, 'DM Mono', false, false, 'ffffff', SlidesApp.ParagraphAlignment.START, 100);`);
+  out.push(`  // LB Wordmark (64.96×13.88pt)`);
+  out.push(`  if (assets && assets.lb_logo) slide.insertImage(assets.lb_logo, 268, 390, 64.96, 13.88);`);
+  out.push(`  // × icon (8.1×8.33pt)`);
+  out.push(`  if (assets && assets.x_icon) slide.insertImage(assets.x_icon, 346, 390, 8.1, 8.33);`);
+  out.push(`  // Client logo (63.76×13.88pt)`);
+  out.push(`  if (assets && assets.client_logo) slide.insertImage(assets.client_logo, 364, 390, 63.76, 13.88);`);
+  out.push(`  // Section name`);
+  out.push(`  txt(slide, 460, 389, 200, 14, sectionName || 'SECTION', 5, 'DM Mono', false, false, '777777', SlidesApp.ParagraphAlignment.START, 100);`);
+  out.push(`  // Page number (auto-increments per slide)`);
+  out.push(`  txt(slide, 693, 389, 27, 14, String(pageNum || 1), 5, 'DM Mono', false, false, '555555', SlidesApp.ParagraphAlignment.END, 100);`);
+  out.push(`}`);
+  out.push(``);
+  out.push(`// ${'─'.repeat(60)}`);
   out.push(`// SLIDE BUILD FUNCTIONS`);
   out.push(`// Each function builds one slide type onto an existing GAS slide object.`);
-  out.push(`// Prerequisites in your main script:`);
-  out.push(`//   txt(slide,x,y,w,h,content,fontSize,fontFamily,bold,italic,color,align,bg)`);
-  out.push(`//   addFooter(slide,pageNum,sectionName,deckTitle,clientName)`);
   out.push(`// ${'─'.repeat(60)}`);
   out.push(``);
 
@@ -793,8 +955,13 @@ function exportGAS(){
         const align=e.align==='right'?'SlidesApp.ParagraphAlignment.END':
                      e.align==='center'?'SlidesApp.ParagraphAlignment.CENTER':
                      'SlidesApp.ParagraphAlignment.START';
+        const lineSpacing=Math.round((e.lh||1.25)*100); // convert to % integer for GAS
+        const lines=(e.val||'').split('\n');
+        const valStr=lines.length>1
+          ? lines.map(l=>`'${l.replace(/'/g,"\\'")}'`).join('+\'\\n\'+')
+          : `'${(e.val||'').replace(/'/g,"\\'")}'`;
         out.push(`  // ${e.lbl||'Text'}`);
-        out.push(`  txt(slide, ${v(e.x)}, ${v(e.y)}, ${v(e.w)}, ${v(e.h)}, '${(e.val||'').replace(/'/g,"\\'")}', ${+(e.fs||10).toFixed(1)}, '${font}', ${bold}, ${italic}, '${col}', ${align});`);
+        out.push(`  txt(slide, ${v(e.x)}, ${v(e.y)}, ${v(e.w)}, ${v(e.h)}, ${valStr}, ${+(e.fs||10).toFixed(1)}, '${font}', ${bold}, ${italic}, '${col}', ${align}, ${lineSpacing});`);
       }
       out.push(``);
     }
@@ -1022,6 +1189,7 @@ function addGlobal(type){
     txt:{t:'txt',lbl:'Global Text',x:20,y:390,w:100,h:14,val:'Text',fs:5,col:'#ffffff',align:'left',font:'DM Mono'},
     rect:{t:'rect',lbl:'Global Rect',x:0,y:388,w:720,h:17,fill:'#0d0d0d'},
   };
+  pushHistory();
   S.globals.push({...defaults[type]});
   S.selGlobal=S.globals.length-1;
   renderGlobalList(); renderGlobalEditor(); draw();
@@ -1030,6 +1198,7 @@ function addGlobal(type){
 function deleteGlobal(){
   if(S.selGlobal===null) return;
   if(!confirm(`Delete "${S.globals[S.selGlobal].lbl}"?`)) return;
+  pushHistory();
   S.globals.splice(S.selGlobal,1);
   S.selGlobal=null;
   renderGlobalList(); renderGlobalEditor(); draw();
@@ -1156,15 +1325,27 @@ const PX2PT = 1/1.333;
 function nudge(prop, deltaPx) {
   const tpl=S.templates.find(t=>t.id===S.active);
   if(!tpl||S.selEl===null) return;
+  pushHistory();
   const e=tpl.els[S.selEl];
   const cur=parseFloat(e[prop])||0;
   e[prop]=Math.round((cur + deltaPx*PX2PT)*100)/100;
   renderElList(); draw();
 }
 
+function nudgeLH(delta){
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl||S.selEl===null) return;
+  pushHistory();
+  const e=tpl.els[S.selEl];
+  const cur=parseFloat(e.lh)||1.25;
+  e.lh=Math.round(Math.min(3,Math.max(0.8,cur+delta))*100)/100;
+  renderElList(); draw();
+}
+
 function setVal(prop, val) {
   const tpl=S.templates.find(t=>t.id===S.active);
   if(!tpl||S.selEl===null) return;
+  pushHistory();
   const e=tpl.els[S.selEl];
   const n=parseFloat(val);
   if(!isNaN(n)) e[prop]=Math.round(n*100)/100;
@@ -1174,6 +1355,7 @@ function setVal(prop, val) {
 function setStrVal(prop, val) {
   const tpl=S.templates.find(t=>t.id===S.active);
   if(!tpl||S.selEl===null) return;
+  pushHistory();
   tpl.els[S.selEl][prop]=val;
   draw();
 }
@@ -1181,6 +1363,7 @@ function setStrVal(prop, val) {
 function changeElType(newType){
   const tpl=S.templates.find(t=>t.id===S.active);
   if(!tpl||S.selEl===null) return;
+  pushHistory();
   const e=tpl.els[S.selEl];
   const old=e.t;
   e.t=newType;
@@ -1199,6 +1382,7 @@ function changeElType(newType){
 function splitEl(n){
   const tpl=S.templates.find(t=>t.id===S.active);
   if(!tpl||S.selEl===null) return;
+  pushHistory();
   const e=tpl.els[S.selEl];
   const slotW=Math.round((e.w/n)*100)/100;
   const gap=0; // no gap — nudge after if needed
@@ -1221,6 +1405,7 @@ function deleteEl(){
   const e=tpl.els[S.selEl];
   if(e.t==='bg'){alert("Can't delete the background.");return;}
   if(!confirm(`Delete "${e.lbl||e.t}"?`)) return;
+  pushHistory();
   tpl.els.splice(S.selEl,1);
   S.selEl=null;
   renderElList(); draw();
@@ -1229,6 +1414,7 @@ function deleteEl(){
 function addEl(type){
   const tpl=S.templates.find(t=>t.id===S.active);
   if(!tpl) return;
+  pushHistory();
   const defaults={
     txt:{t:'txt',lbl:'New Text',x:20,y:20,w:200,h:20,val:'Text',fs:10,col:'#ffffff',align:'left',font:'Inter Tight'},
     img:{t:'img',lbl:'New Image',x:20,y:20,w:120,h:80,key:'logo'},
@@ -1284,11 +1470,14 @@ function renderEditor(){
   // ── Value / type-specific fields ──
   let valField='';
   if(e.t==='txt'){
+    // escape for textarea
+    const safeVal=(e.val||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     valField=`
     <div class="ed-field">
-      <span class="ed-label">Text content</span>
-      <input class="ed-val-input" type="text" value="${(e.val||'').replace(/"/g,'&quot;')}"
-        ${ro} oninput="setStrVal('val',this.value)">
+      <span class="ed-label">Text content <span style="color:var(--txf);font-weight:400">(Enter = new line)</span></span>
+      <textarea class="ed-val-input" rows="3" ${ro}
+        style="resize:vertical;line-height:1.4;white-space:pre-wrap;"
+        oninput="setStrVal('val',this.value)">${safeVal}</textarea>
     </div>
     <div class="ed-grid">
       <div class="ed-field">
@@ -1306,11 +1495,12 @@ function renderEditor(){
     </div>
     <div class="ed-grid">
       <div class="ed-field">
-        <span class="ed-label">Size (pt)</span>
+        <span class="ed-label">Size (pt) — type or nudge</span>
         <div class="ed-row">
           <button class="ed-nudge" ${dis} onclick="nudge('fs',-1)">−</button>
-          <input class="ed-input" type="number" step="0.5" value="${e.fs||10}"
-            ${ro} oninput="setVal('fs',this.value)">
+          <input class="ed-input" type="number" step="0.5" value="${+(e.fs||10).toFixed(1)}"
+            ${ro} style="font-size:12px;font-weight:600;color:var(--acc)"
+            oninput="setVal('fs',this.value)" onchange="setVal('fs',this.value)">
           <button class="ed-nudge" ${dis} onclick="nudge('fs',1)">+</button>
         </div>
       </div>
@@ -1333,6 +1523,16 @@ function renderEditor(){
         <input class="ed-input" style="flex:1" type="text" value="${e.col||'#ffffff'}"
           ${ro} oninput="setStrVal('col',this.value)">
       </div>
+    </div>
+    <div class="ed-field">
+      <span class="ed-label">Line height <span style="color:var(--txf);font-weight:400">(× font size)</span></span>
+      <div class="ed-row">
+        <button class="ed-nudge" ${dis} onclick="nudgeLH(-0.05)">−</button>
+        <input class="ed-input" type="number" step="0.05" min="0.8" max="3"
+          value="${+(e.lh||1.25).toFixed(2)}" ${ro}
+          oninput="setVal('lh',this.value)" onchange="setVal('lh',this.value)">
+        <button class="ed-nudge" ${dis} onclick="nudgeLH(0.05)">+</button>
+      </div>
     </div>`;
   }
 
@@ -1341,7 +1541,7 @@ function renderEditor(){
     <div class="ed-field">
       <span class="ed-label">Asset key</span>
       <select class="ed-select" ${dis} onchange="setStrVal('key',this.value)">
-        ${['logo','rocky'].map(k=>`<option value="${k}" ${e.key===k?'selected':''}>${k}</option>`).join('')}
+        ${['logo','lb_logo','x_icon','client_logo','rocky'].map(k=>`<option value="${k}" ${e.key===k?'selected':''}>${k}</option>`).join('')}
       </select>
     </div>
     ${!locked?`<div class="ed-field" style="margin-top:4px">
@@ -1633,14 +1833,87 @@ function createTpl(){
 }
 document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
 
+// ── PERSIST ──
+const SAVE_KEY = 'lb_deck_builder_v1';
+
+function saveState(){
+  try{
+    const payload={
+      templates: S.templates,
+      globals: S.globals,
+      chats: S.chats
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    const el=document.getElementById('saveStatus');
+    if(el){ el.textContent='✓ autosaved'; setTimeout(()=>el.textContent='',2000); }
+  }catch(e){ console.warn('autosave failed',e); }
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const payload=JSON.parse(raw);
+    if(payload.templates) S.templates=payload.templates;
+    if(payload.globals)   S.globals=payload.globals;
+    if(payload.chats)     S.chats=payload.chats;
+    return true;
+  }catch(e){ console.warn('loadState failed',e); return false; }
+}
+
+function exportLibrary(){
+  const payload={
+    version:1,
+    exported: new Date().toISOString(),
+    templates: S.templates,
+    globals: S.globals
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  const ts=new Date().toISOString().slice(0,16).replace('T','-').replace(':','-');
+  a.download=`lb_library_${ts}.json`;
+  a.href=URL.createObjectURL(blob); a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importLibrary(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const payload=JSON.parse(ev.target.result);
+      if(!payload.templates||!Array.isArray(payload.templates)){
+        alert('Invalid library file.'); return;
+      }
+      if(!confirm(`Load ${payload.templates.length} templates from "${f.name}"?\n\nThis will replace your current templates.`)) return;
+      S.templates=payload.templates;
+      if(payload.globals) S.globals=payload.globals;
+      // rebuild chats index
+      S.chats={};
+      S.templates.forEach(t=>{ if(!S.chats[t.id]) S.chats[t.id]=[]; });
+      S.active=S.templates[0]?.id||null;
+      S.selEl=null; S.selGlobal=null;
+      saveState();
+      renderList(); renderGlobalList();
+      if(S.active) selectTpl(S.active);
+      document.getElementById('saveStatus').textContent=`✓ loaded ${S.templates.length} templates`;
+      setTimeout(()=>document.getElementById('saveStatus').textContent='',3000);
+    }catch(err){ alert('Failed to parse file: '+err.message); }
+  };
+  r.readAsText(f);
+  e.target.value='';
+}
+
 // ── INIT ──
 setupUploads();
 setupRefUpload();
+loadState(); // restore from localStorage if available
 renderList();
 renderGlobalList();
 // Wait for Google Fonts to load before first draw so canvas uses real fonts
 document.fonts.ready.then(() => {
-  selectTpl('01');
+  const first=S.templates[0]?.id||'01';
+  selectTpl(S.active&&S.templates.find(t=>t.id===S.active)?S.active:first);
   resizeCanvas();
 });
 </script>
