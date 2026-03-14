@@ -135,6 +135,17 @@ input[type=file]{display:none;}
 .exp-bar p{font-size:10px;color:#c76020;line-height:1.5;}
 .exp-bar strong{color:var(--acc);}
 .canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;background:#e8e8e8;padding:20px;overflow:hidden;position:relative;}
+/* Rulers */
+.ruler-corner{position:absolute;top:0;left:0;width:20px;height:20px;background:var(--bg2);border-right:1px solid var(--b2);border-bottom:1px solid var(--b2);z-index:20;flex-shrink:0;}
+.ruler-h{position:absolute;top:0;left:20px;right:0;height:20px;background:var(--bg2);border-bottom:1px solid var(--b2);z-index:20;overflow:hidden;cursor:s-resize;}
+.ruler-v{position:absolute;top:20px;left:0;bottom:0;width:20px;background:var(--bg2);border-right:1px solid var(--b2);z-index:20;overflow:hidden;cursor:e-resize;}
+.ruler-canvas{position:absolute;top:0;left:0;pointer-events:none;}
+/* Guides */
+.guide{position:absolute;pointer-events:none;z-index:15;}
+.guide.h{left:20px;right:0;height:1px;background:rgba(0,180,255,0.7);cursor:ns-resize;pointer-events:all;}
+.guide.v{top:20px;bottom:0;width:1px;background:rgba(0,180,255,0.7);cursor:ew-resize;pointer-events:all;}
+.guide:hover{background:rgba(0,220,255,1);}
+.guide-label{position:absolute;background:rgba(0,140,200,.85);color:#fff;font-size:8px;font-family:monospace;padding:1px 4px;border-radius:2px;pointer-events:none;white-space:nowrap;z-index:30;}
 canvas#slide{max-width:100%;max-height:100%;display:block;transition:opacity .15s ease;}
 canvas#slide.switching{opacity:0;}
 canvas#slide.place-mode{cursor:crosshair;}
@@ -347,6 +358,10 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
     </div>
 
     <div class="canvas-wrap" id="canvasWrap">
+      <div class="ruler-corner" id="rulerCorner" title="Double-click to clear all guides"></div>
+      <canvas class="ruler-canvas" id="rulerH"></canvas>
+      <canvas class="ruler-canvas" id="rulerV"></canvas>
+      <div id="guidesLayer" style="position:absolute;inset:0;pointer-events:none;z-index:15;overflow:hidden"></div>
       <canvas id="slide"></canvas>
       <div class="c-crosshair" id="crosshair"></div>
       <div class="c-info" id="cInfo"></div>
@@ -505,7 +520,7 @@ let S={
       ]
     }
   ],
-  active:'01',selEl:null, posUnit:'pt',
+  active:'01',selEl:null, posUnit:'px',
   selGlobal:null,
   editingGlobals:false,
   chats:{'01':[],'02':[]},
@@ -1030,6 +1045,8 @@ function draw(){
   }
 
   document.getElementById('cInfo').textContent=`preview ${CW}×${CH}  ·  export 960×540px`;
+  // Draw guides onto canvas so magnifier sees them
+  drawGuidesOnCanvas(g);
   saveState();
   refreshMag();
 }
@@ -1776,18 +1793,12 @@ function renderGlobalEditor(){
   const e=S.globals[S.selGlobal];
   const fields=[['x','X'],['y','Y'],['w','W'],['h','H']];
   const posFields=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <span class="ed-label" style="margin-bottom:0">Position &amp; Size</span>
-      <div style="display:flex;border:1px solid var(--b2);border-radius:4px;overflow:hidden;font-size:9px">
-        <button onclick="setUnit('pt')" style="padding:2px 7px;border:none;cursor:pointer;background:${S.posUnit==='px'?'transparent':'var(--acc)'};color:${S.posUnit==='px'?'var(--txf)':'#fff'}">pt</button>
-        <button onclick="setUnit('px')" style="padding:2px 7px;border:none;cursor:pointer;background:${S.posUnit==='px'?'var(--acc)':'transparent'};color:${S.posUnit==='px'?'#fff':'var(--txf)'}">px <span style="opacity:.6;font-size:8px">GSlides</span></button>
-      </div>
-    </div>
+    <div style="font-size:9px;color:var(--txf);font-weight:600;margin-bottom:4px;letter-spacing:.05em">POSITION &amp; SIZE <span style="color:var(--acc);font-weight:400">px (GSlides)</span></div>
     <div class="ed-grid">${fields.map(([p,lbl])=>{
       const ptVal=+(e[p]||0).toFixed(2);
       const dispVal=S.posUnit==='px'?+(ptVal*1.333).toFixed(1):ptVal;
       return `
-      <div class="ed-field"><span class="ed-label">${lbl} <span style="color:var(--txf)">(${S.posUnit||'pt'})</span></span>
+      <div class="ed-field"><span class="ed-label">${lbl} <span style="color:var(--txf)">(px)</span></span>
         <div class="ed-row">
           <button class="ed-nudge" onclick="nudgeGlobal('${p}',-1)">−</button>
           <input class="ed-input" type="number" step="${S.posUnit==='px'?'1':'0.1'}" value="${dispVal}"
@@ -2001,10 +2012,7 @@ function setValUnit(prop, val){
   setVal(prop, ptVal);
 }
 
-function setUnit(unit){
-  S.posUnit=unit;
-  renderEditor(); // re-render editor with new unit display
-}
+// posUnit hardcoded to px (GSlides)
 
 function setStrVal(prop, val) {
   const tpl=S.templates.find(t=>t.id===S.active);
@@ -2128,22 +2136,14 @@ function renderEditor(){
   if(e.t!=='bg'){
     const fields=[['x','X'],['y','Y'],['w','W'],['h','H']];
     posFields=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-      <span class="ed-label" style="margin-bottom:0">Position &amp; Size</span>
-      <div style="display:flex;border:1px solid var(--b2);border-radius:4px;overflow:hidden;font-size:9px">
-        <button id="unitPt" onclick="setUnit('pt')"
-          style="padding:2px 7px;border:none;cursor:pointer;background:${S.posUnit==='px'?'transparent':'var(--acc)'};color:${S.posUnit==='px'?'var(--txf)':'#fff'}">pt</button>
-        <button id="unitPx" onclick="setUnit('px')"
-          style="padding:2px 7px;border:none;cursor:pointer;background:${S.posUnit==='px'?'var(--acc)':'transparent'};color:${S.posUnit==='px'?'#fff':'var(--txf)'}">px <span style="opacity:.6;font-size:8px">GSlides</span></button>
-      </div>
-    </div>
+    <div style="font-size:9px;color:var(--txf);font-weight:600;margin-bottom:4px;letter-spacing:.05em">POSITION &amp; SIZE <span style="color:var(--acc);font-weight:400">px (GSlides)</span></div>
     <div class="ed-grid">
       ${fields.map(([p,lbl])=>{
         const ptVal=+(e[p]||0).toFixed(2);
         const dispVal=S.posUnit==='px'?+(ptVal*1.333).toFixed(1):ptVal;
         return `
         <div class="ed-field">
-          <span class="ed-label">${lbl} <span style="color:var(--txf)">(${S.posUnit||'pt'})</span></span>
+          <span class="ed-label">${lbl} <span style="color:var(--txf)">(px)</span></span>
           <div class="ed-row">
             <button class="ed-nudge" ${dis} onclick="nudge('${p}',-1)" title="-1px">−</button>
             <input class="ed-input" type="number" step="${S.posUnit==='px'?'1':'0.1'}" value="${dispVal}"
@@ -2262,7 +2262,7 @@ function renderEditor(){
           style="flex:1" oninput="setVal('gasPad',+this.value)" onchange="setVal('gasPad',+this.value)">
         <button onclick="setVal('gasPad',7.2)" style="padding:2px 7px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txf);cursor:pointer" title="Reset to GAS default">reset</button>
       </div>
-      <div style="font-size:9px;color:var(--txf);margin-top:3px">Default 7.2pt = GAS default 9.6px inset. Increase if text still appears offset.</div>
+      <div style="font-size:9px;color:var(--txf);margin-top:3px">Expands box equally on all 4 sides to cancel GAS 9.6px forced inset. 7.2pt = exact match.</div>
     </div>
     ${(e.val||'').includes('\n')&&!locked?`
     <div class="ed-field" style="margin-top:6px">
@@ -2724,6 +2724,242 @@ function ctxDeleteEl(){
   hideCtx(); renderElList(); renderGlobalList(); draw();
 }
 
+// ── RULERS & GUIDES ──
+const RS = 20; // ruler thickness px
+let guides = []; // [{type:'h'|'v', pos:ptValue}]
+let _dragGuide = null;   // {idx, type} — dragging existing guide
+let _dragFromRuler = null; // 'h'|'v' — dragging new guide from ruler
+
+function getCanvasRect(){
+  const wrap = document.getElementById('canvasWrap');
+  const wrapR = wrap.getBoundingClientRect();
+  const cvR = pvCanvas.getBoundingClientRect();
+  return {
+    wrap: wrapR,
+    cv: cvR,
+    // canvas position relative to wrap
+    left: cvR.left - wrapR.left,
+    top:  cvR.top  - wrapR.top,
+    w: cvR.width,
+    h: cvR.height
+  };
+}
+
+function ptToScreenH(pt){ // pt → px relative to wrap for vertical guide
+  const r = getCanvasRect();
+  return r.left + (pt / SW) * r.w;
+}
+function ptToScreenV(pt){ // pt → px relative to wrap for horizontal guide
+  const r = getCanvasRect();
+  return r.top + (pt / SH) * r.h;
+}
+function screenToPtH(px){ // px relative to wrap → pt (horizontal)
+  const r = getCanvasRect();
+  return Math.round(((px - r.left) / r.w) * SW * 10) / 10;
+}
+function screenToPtV(py){ // py relative to wrap → pt (vertical)
+  const r = getCanvasRect();
+  return Math.round(((py - r.top) / r.h) * SH * 10) / 10;
+}
+
+function drawGuidesOnCanvas(g){
+  if(!guides.length) return;
+  g.save();
+  // Scale line width to remain ~1.5px visually regardless of canvas internal size
+  const visiblePx = 1.5 * (pvCanvas.width / pvCanvas.getBoundingClientRect().width);
+  g.strokeStyle='rgba(0,210,255,0.9)';
+  g.lineWidth = visiblePx;
+  g.setLineDash([6,4]);
+  guides.forEach(guide=>{
+    if(guide.type==='v'){
+      const x = Math.round((guide.pos / SW) * pvCanvas.width) + 0.5;
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, pvCanvas.height); g.stroke();
+    } else {
+      const y = Math.round((guide.pos / SH) * pvCanvas.height) + 0.5;
+      g.beginPath(); g.moveTo(0, y); g.lineTo(pvCanvas.width, y); g.stroke();
+    }
+  });
+  g.setLineDash([]);
+  g.restore();
+}
+
+function drawRulers(){
+  const wrap = document.getElementById('canvasWrap');
+  if(!wrap || !pvCanvas.width) return;
+  const wW = wrap.clientWidth, wH = wrap.clientHeight;
+  const r = getCanvasRect();
+
+  // Size ruler canvases
+  const rh = document.getElementById('rulerH');
+  rh.style.cssText = `position:absolute;top:0;left:${RS}px;width:${wW-RS}px;height:${RS}px;pointer-events:all;cursor:s-resize;z-index:20;`;
+  rh.width = wW - RS; rh.height = RS;
+  const rv = document.getElementById('rulerV');
+  rv.style.cssText = `position:absolute;top:${RS}px;left:0;width:${RS}px;height:${wH-RS}px;pointer-events:all;cursor:e-resize;z-index:20;`;
+  rv.width = RS; rv.height = wH - RS;
+
+  const bg = '#1e1e1e', tick = '#666', lbl = '#888';
+
+  // Horizontal ruler (shows X / SW values)
+  const gh = rh.getContext('2d');
+  gh.fillStyle = bg; gh.fillRect(0,0,rh.width,RS);
+  gh.strokeStyle = tick; gh.lineWidth = 0.5;
+  gh.beginPath(); gh.moveTo(0,RS-0.5); gh.lineTo(rh.width,RS-0.5); gh.stroke();
+  const pxPerPt = r.w / SW;
+  const stepPt = pxPerPt < 2 ? 100 : pxPerPt < 4 ? 50 : pxPerPt < 8 ? 20 : 10;
+  for(let pt = 0; pt <= SW; pt += stepPt){
+    const x = r.left - RS + pt * pxPerPt;
+    if(x < 0 || x > rh.width) continue;
+    const isMajor = pt % (stepPt*2) === 0;
+    gh.strokeStyle = tick;
+    gh.beginPath(); gh.moveTo(x, RS); gh.lineTo(x, isMajor ? RS-10 : RS-5); gh.stroke();
+    if(isMajor){ gh.fillStyle=lbl; gh.font='8px monospace'; gh.textAlign='center'; gh.textBaseline='bottom'; gh.fillText(pt,x,RS-1); }
+  }
+
+  // Vertical ruler (shows Y / SH values)
+  const gv = rv.getContext('2d');
+  gv.fillStyle = bg; gv.fillRect(0,0,RS,rv.height);
+  gv.strokeStyle = tick; gv.lineWidth = 0.5;
+  gv.beginPath(); gv.moveTo(RS-0.5,0); gv.lineTo(RS-0.5,rv.height); gv.stroke();
+  const pxPerPtV = r.h / SH;
+  const stepPtV = pxPerPtV < 2 ? 100 : pxPerPtV < 4 ? 50 : pxPerPtV < 8 ? 20 : 10;
+  for(let pt = 0; pt <= SH; pt += stepPtV){
+    const y = r.top - RS + pt * pxPerPtV;
+    if(y < 0 || y > rv.height) continue;
+    const isMajor = pt % (stepPtV*2) === 0;
+    gv.strokeStyle = tick;
+    gv.beginPath(); gv.moveTo(RS, y); gv.lineTo(isMajor ? RS-10 : RS-5, y); gv.stroke();
+    if(isMajor){
+      gv.save(); gv.translate(RS/2-1, y); gv.rotate(-Math.PI/2);
+      gv.fillStyle=lbl; gv.font='8px monospace'; gv.textAlign='center'; gv.textBaseline='middle';
+      gv.fillText(pt,0,0); gv.restore();
+    }
+  }
+
+  renderGuides();
+}
+
+function renderGuides(){
+  const layer = document.getElementById('guidesLayer');
+  if(!layer) return;
+  layer.innerHTML = '';
+  const r = getCanvasRect();
+
+  guides.forEach((g, i) => {
+    const el = document.createElement('div');
+    // Guide spans full wrap area, not just canvas, for easy grabbing
+    if(g.type === 'v'){
+      const x = ptToScreenH(g.pos);
+      el.style.cssText = `position:absolute;top:${RS}px;bottom:0;left:${x}px;width:5px;margin-left:-2px;cursor:ew-resize;background:transparent;z-index:16;`;
+      // visible line
+      const line = document.createElement('div');
+      line.style.cssText = `position:absolute;top:0;bottom:0;left:2px;width:1px;background:rgba(0,190,255,0.85);pointer-events:none;`;
+      el.appendChild(line);
+      // label
+      const lbl = document.createElement('div');
+      lbl.style.cssText = `position:absolute;top:2px;left:6px;background:rgba(0,140,200,.9);color:#fff;font-size:8px;font-family:monospace;padding:1px 3px;border-radius:2px;pointer-events:none;white-space:nowrap;`;
+      lbl.textContent = g.pos.toFixed(1)+'pt';
+      el.appendChild(lbl);
+    } else {
+      const y = ptToScreenV(g.pos);
+      el.style.cssText = `position:absolute;left:${RS}px;right:0;top:${y}px;height:5px;margin-top:-2px;cursor:ns-resize;background:transparent;z-index:16;`;
+      const line = document.createElement('div');
+      line.style.cssText = `position:absolute;left:0;right:0;top:2px;height:1px;background:rgba(0,190,255,0.85);pointer-events:none;`;
+      el.appendChild(line);
+      const lbl = document.createElement('div');
+      lbl.style.cssText = `position:absolute;top:-14px;left:4px;background:rgba(0,140,200,.9);color:#fff;font-size:8px;font-family:monospace;padding:1px 3px;border-radius:2px;pointer-events:none;white-space:nowrap;`;
+      lbl.textContent = g.pos.toFixed(1)+'pt';
+      el.appendChild(lbl);
+    }
+    el.addEventListener('mousedown', e => {
+      e.stopPropagation(); e.preventDefault();
+      _dragGuide = {idx: i, type: g.type};
+      document.body.style.cursor = g.type==='v'?'ew-resize':'ns-resize';
+    });
+    el.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      guides.splice(i, 1);
+      renderGuides();
+    });
+    layer.appendChild(el);
+  });
+}
+
+// Drag from rulers to create new guides
+document.getElementById('rulerH').addEventListener('mousedown', e => {
+  e.preventDefault(); _dragFromRuler = 'h';
+  document.body.style.cursor = 'ns-resize';
+});
+document.getElementById('rulerV').addEventListener('mousedown', e => {
+  e.preventDefault(); _dragFromRuler = 'v';
+  document.body.style.cursor = 'ew-resize';
+});
+document.getElementById('rulerCorner').addEventListener('dblclick', () => { guides=[]; renderGuides(); });
+
+document.addEventListener('mousemove', e => {
+  const wrap = document.getElementById('canvasWrap');
+  if(!wrap) return;
+  const wrapR = wrap.getBoundingClientRect();
+  const px = e.clientX - wrapR.left;
+  const py = e.clientY - wrapR.top;
+
+  if(_dragFromRuler){
+    // Show live preview line
+    let prev = document.getElementById('guidePreview');
+    if(!prev){ prev = document.createElement('div'); prev.id='guidePreview'; wrap.appendChild(prev); }
+    if(_dragFromRuler === 'h'){
+      prev.style.cssText = `position:absolute;left:${RS}px;right:0;top:${py}px;height:1px;background:rgba(0,190,255,0.6);pointer-events:none;z-index:28;`;
+    } else {
+      prev.style.cssText = `position:absolute;top:${RS}px;bottom:0;left:${px}px;width:1px;background:rgba(0,190,255,0.6);pointer-events:none;z-index:28;`;
+    }
+  }
+
+  if(_dragGuide !== null){
+    const g = guides[_dragGuide.idx];
+    if(_dragGuide.type === 'v'){
+      g.pos = Math.max(0, Math.min(SW, screenToPtH(px)));
+    } else {
+      g.pos = Math.max(0, Math.min(SH, screenToPtV(py)));
+    }
+    renderGuides();
+  }
+});
+
+document.addEventListener('mouseup', e => {
+  const wrap = document.getElementById('canvasWrap');
+  const prev = document.getElementById('guidePreview');
+  if(prev) prev.remove();
+
+  if(_dragFromRuler && wrap){
+    const wrapR = wrap.getBoundingClientRect();
+    const px = e.clientX - wrapR.left;
+    const py = e.clientY - wrapR.top;
+    if(_dragFromRuler === 'h'){
+      const pt = screenToPtV(py);
+      if(pt >= 0 && pt <= SH) guides.push({type:'h', pos: pt});
+    } else {
+      const pt = screenToPtH(px);
+      if(pt >= 0 && pt <= SW) guides.push({type:'v', pos: pt});
+    }
+    renderGuides();
+    _dragFromRuler = null;
+    document.body.style.cursor = '';
+  }
+
+  if(_dragGuide !== null){
+    _dragGuide = null;
+    document.body.style.cursor = '';
+  }
+});
+
+// Hook into resizeCanvas
+const _origResizeCanvas2 = resizeCanvas;
+resizeCanvas = function(){
+  _origResizeCanvas2();
+  setTimeout(drawRulers, 50);
+};
+window.addEventListener('resize', drawRulers);
+
+
 // ── PERSIST ──
 const SAVE_KEY = 'lb_deck_builder_v1';
 
@@ -2849,6 +3085,7 @@ document.fonts.ready.then(() => {
   const first=S.templates[0]?.id||'01';
   selectTpl(S.active&&S.templates.find(t=>t.id===S.active)?S.active:first);
   resizeCanvas();
+  setTimeout(drawRulers, 100);
 });
 </script>
 <!-- Chat toggle button (shown when panel is collapsed) -->
