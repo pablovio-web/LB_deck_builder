@@ -109,16 +109,7 @@ input[type=file]{display:none;}
 .btn-new{width:100%;padding:8px;background:var(--acc);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:opacity .15s;}
 .btn-new:hover{opacity:.86;}
 .main{flex:1;display:flex;overflow:hidden;min-width:0;}
-.slide-panel{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;border-right:1px solid var(--b1);}
-/* Right panel — resizable, contains element editor */
-.right-panel{width:420px;min-width:280px;max-width:800px;display:flex;flex-direction:column;border-left:1px solid var(--b1);background:var(--bg2);overflow:hidden;position:relative;}
-.right-resize{width:4px;background:transparent;cursor:col-resize;position:absolute;left:0;top:0;bottom:0;z-index:10;}
-.right-resize:hover,.right-resize.dragging{background:var(--acc);}
-/* Chat panel — collapsible */
-.chat-panel{width:330px;min-width:0;display:flex;flex-direction:column;overflow:hidden;border-left:1px solid var(--b1);transition:width .2s ease,min-width .2s ease;}
-.chat-panel.collapsed{width:0 !important;min-width:0 !important;border:none;}
-.chat-toggle{position:fixed;bottom:16px;right:16px;width:36px;height:36px;border-radius:50%;background:var(--acc);border:none;color:#fff;font-size:14px;cursor:pointer;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;transition:transform .15s;}
-.chat-toggle:hover{transform:scale(1.1);}
+.slide-panel{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--b1);min-width:0;overflow:hidden;}
 .ph{padding:0 13px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;height:50px;flex-shrink:0;}
 .ph-title{font-size:12px;font-weight:600;}
 .ph-sub{font-size:10px;color:var(--txd);margin-top:1px;}
@@ -135,17 +126,6 @@ input[type=file]{display:none;}
 .exp-bar p{font-size:10px;color:#c76020;line-height:1.5;}
 .exp-bar strong{color:var(--acc);}
 .canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;background:#e8e8e8;padding:20px;overflow:hidden;position:relative;}
-/* Rulers */
-.ruler-corner{position:absolute;top:0;left:0;width:20px;height:20px;background:var(--bg2);border-right:1px solid var(--b2);border-bottom:1px solid var(--b2);z-index:20;flex-shrink:0;}
-.ruler-h{position:absolute;top:0;left:20px;right:0;height:20px;background:var(--bg2);border-bottom:1px solid var(--b2);z-index:20;overflow:hidden;cursor:s-resize;}
-.ruler-v{position:absolute;top:20px;left:0;bottom:0;width:20px;background:var(--bg2);border-right:1px solid var(--b2);z-index:20;overflow:hidden;cursor:e-resize;}
-.ruler-canvas{position:absolute;top:0;left:0;pointer-events:none;}
-/* Guides */
-.guide{position:absolute;pointer-events:none;z-index:15;}
-.guide.h{left:20px;right:0;height:1px;background:rgba(0,180,255,0.7);cursor:ns-resize;pointer-events:all;}
-.guide.v{top:20px;bottom:0;width:1px;background:rgba(0,180,255,0.7);cursor:ew-resize;pointer-events:all;}
-.guide:hover{background:rgba(0,220,255,1);}
-.guide-label{position:absolute;background:rgba(0,140,200,.85);color:#fff;font-size:8px;font-family:monospace;padding:1px 4px;border-radius:2px;pointer-events:none;white-space:nowrap;z-index:30;}
 canvas#slide{max-width:100%;max-height:100%;display:block;transition:opacity .15s ease;}
 canvas#slide.switching{opacity:0;}
 canvas#slide.place-mode{cursor:crosshair;}
@@ -168,18 +148,18 @@ canvas#slide.place-mode{cursor:crosshair;}
 .analyze-btn:hover{background:rgba(249,115,22,.2);}
 .analyze-btn:disabled{opacity:.5;cursor:not-allowed;}
 .analyze-status{font-size:10px;color:var(--txd);text-align:center;margin-top:6px;min-height:16px;}
-.el-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.el-pane{height:200px;min-height:200px;border-top:1px solid var(--b1);display:flex;flex-direction:column;}
 .el-head{padding:6px 13px 5px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--b1);}
 .el-head-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--txd);font-weight:700;}
-.el-body{display:flex;flex-direction:column;flex:1;overflow:hidden;}
-.el-list{height:160px;min-height:120px;overflow-y:auto;padding:3px 5px;border-bottom:1px solid var(--b1);display:flex;flex-wrap:wrap;align-content:flex-start;gap:1px;}
-.el-row{display:flex;align-items:center;gap:4px;padding:2px 6px;border-radius:5px;cursor:pointer;font-size:10px;border:1px solid transparent;white-space:nowrap;}
+.el-body{display:flex;flex:1;overflow:hidden;}
+.el-list{width:200px;min-width:200px;overflow-y:auto;padding:3px 5px;border-right:1px solid var(--b1);}
+.el-row{display:flex;align-items:center;gap:6px;padding:3px 7px;border-radius:5px;cursor:pointer;font-size:11px;border:1px solid transparent;}
 .el-row:hover{background:var(--s2);}
 .el-row.sel{background:var(--acc-bg);border-color:var(--acc-b);}
 .el-tag{font-family:var(--mono);font-size:9px;padding:2px 4px;border-radius:3px;background:var(--s3);color:var(--txd);min-width:28px;text-align:center;}
 .el-lbl{flex:1;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 /* inline editor */
-.el-editor{flex:1;padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;border-top:none;}
+.el-editor{flex:1;padding:10px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
 .el-editor-empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--txf);}
 .ed-title{font-size:10px;font-weight:600;color:var(--tx);margin-bottom:2px;}
 .ed-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
@@ -358,43 +338,48 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
     </div>
 
     <div class="canvas-wrap" id="canvasWrap">
-      <div class="ruler-corner" id="rulerCorner" title="Double-click to clear all guides"></div>
-      <canvas class="ruler-canvas" id="rulerH"></canvas>
-      <canvas class="ruler-canvas" id="rulerV"></canvas>
-      <div id="guidesLayer" style="position:absolute;inset:0;pointer-events:none;z-index:15;overflow:hidden"></div>
       <canvas id="slide"></canvas>
       <div class="c-crosshair" id="crosshair"></div>
       <div class="c-info" id="cInfo"></div>
     </div>
     <!-- Magnifier lens -->
     <canvas id="magnifier" style="position:fixed;border:2px solid var(--acc);border-radius:50%;box-shadow:0 4px 20px rgba(0,0,0,.6);pointer-events:none;display:none;z-index:9999"></canvas>
-  </div><!-- /slide-panel -->
-
-  <!-- Right panel: element editor (resizable) -->
-  <div class="right-panel" id="rightPanel">
-    <div class="right-resize" id="rightResize"></div>
-    <!-- Stage controls at top of right panel -->
-    <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-bottom:1px solid var(--b1);background:var(--bg2);font-size:9px;color:var(--txf);flex-shrink:0;flex-wrap:wrap">
-      <span style="color:var(--txd);font-weight:600">W</span>
-      <input id="stageW" type="number" value="960" min="100" max="3840" step="1"
-        style="width:46px;background:var(--bg3);border:1px solid var(--b2);color:var(--txd);border-radius:4px;padding:2px 4px;font-size:9px"
-        onchange="setStageSize()">
+    <div style="display:flex;align-items:center;gap:10px;padding:5px 10px;border-top:1px solid var(--b1);background:var(--bg2);font-size:10px;color:var(--txf);flex-shrink:0;flex-wrap:wrap">
+      <span style="color:var(--txd);font-weight:600">Stage:</span>
+      <label style="display:flex;align-items:center;gap:4px">
+        W <input id="stageW" type="number" value="960" min="100" max="3840" step="1"
+          style="width:56px;background:var(--bg3);border:1px solid var(--b2);color:var(--txd);border-radius:4px;padding:2px 5px;font-size:10px"
+          onchange="setStageSize()"> px
+      </label>
       <span style="color:var(--b2)">×</span>
-      <span style="color:var(--txd);font-weight:600">H</span>
-      <input id="stageH" type="number" value="540" min="100" max="2160" step="1"
-        style="width:46px;background:var(--bg3);border:1px solid var(--b2);color:var(--txd);border-radius:4px;padding:2px 4px;font-size:9px"
-        onchange="setStageSize()">
-      <button onclick="setStageSize(720,405)" style="padding:1px 5px;font-size:8px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">16:9</button>
-      <button onclick="setStageSize(1920,1080)" style="padding:1px 5px;font-size:8px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">1080p</button>
-      <span style="color:var(--b2);margin:0 1px">|</span>
-      <button onclick="document.getElementById('upRefOverlay').click()" style="padding:1px 5px;font-size:8px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">↑ Ref</button>
+      <label style="display:flex;align-items:center;gap:4px">
+        H <input id="stageH" type="number" value="540" min="100" max="2160" step="1"
+          style="width:56px;background:var(--bg3);border:1px solid var(--b2);color:var(--txd);border-radius:4px;padding:2px 5px;font-size:10px"
+          onchange="setStageSize()"> px
+      </label>
+      <button onclick="setStageSize(720,405)" style="padding:2px 7px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer" title="Reset to Google Slides standard">16:9 std</button>
+      <button onclick="setStageSize(1920,1080)" style="padding:2px 7px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">1080p</button>
+      <span style="color:var(--b2);margin:0 2px">|</span>
+      <span style="color:var(--txd);font-weight:600">Mock ref:</span>
+      <button onclick="document.getElementById('upRefOverlay').click()"
+        style="padding:2px 8px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer" title="Load reference design PNG as bottom layer">
+        ↑ Load PNG
+      </button>
       <input type="file" id="upRefOverlay" accept="image/*,.svg" style="display:none" onchange="loadRefOverlay(event)">
-      <input type="range" id="refOpacity" min="0" max="100" value="50" step="1" style="width:50px;accent-color:var(--acc)" oninput="setRefOpacity(this.value)" disabled>
-      <span id="refOpacityVal" style="width:20px">50%</span>
-      <button id="btnRefToggle" onclick="toggleRefOverlay()" disabled style="padding:1px 5px;font-size:8px;border-radius:3px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">Hide</button>
-      <span style="margin-left:auto;font-size:8px;color:var(--txf)" id="stageInfo">960×540px</span>
+      <label style="display:flex;align-items:center;gap:5px">
+        <span style="color:var(--txf)">AI comp opacity</span>
+        <input type="range" id="refOpacity" min="0" max="100" value="50" step="1"
+          style="width:70px;accent-color:var(--acc)"
+          oninput="setRefOpacity(this.value)" disabled>
+        <span id="refOpacityVal" style="width:24px;text-align:right">50%</span>
+      </label>
+      <button id="btnRefToggle" onclick="toggleRefOverlay()" disabled
+        style="padding:2px 7px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txd);cursor:pointer">Hide</button>
+      <span style="color:var(--b2);margin:0 2px">|</span>
+      <span style="color:var(--txf)">⌘M = magnifier · M = off</span>
+      <span style="margin-left:auto;color:var(--txf)" id="stageInfo">export 960×540px</span>
     </div>
-    <div class="el-pane" style="flex:1">
+    <div class="el-pane">
       <div class="el-head">
         <span class="el-head-lbl">Elements</span>
         <button class="place-btn" id="placeBtn" onclick="togglePlaceMode()" title="Click canvas to set x,y of selected element">
@@ -410,23 +395,20 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
       </div>
       <div class="el-body">
         <div class="el-list" id="elList"></div>
-        <div id="elListResize" style="height:4px;cursor:row-resize;background:transparent;flex-shrink:0;border-bottom:1px solid var(--b1);"
-          onmouseenter="this.style.background='var(--acc)'" onmouseleave="this.style.background='transparent'"></div>
         <div class="el-editor" id="elEditor">
           <div class="el-editor-empty">← select an element to edit</div>
         </div>
       </div>
     </div>
-  </div><!-- /right-panel -->
+  </div>
 
-  <div class="chat-panel" id="chatPanel">
+  <div class="chat-panel">
     <div class="ph">
       <div>
         <div class="ph-title">AI Assistant</div>
         <div class="ph-sub">Iterate on active template</div>
       </div>
       <button class="bsm" style="margin-left:auto" onclick="clearChat()">Clear</button>
-      <button class="bsm" onclick="toggleChat()" style="margin-left:4px" title="Collapse AI panel">✕</button>
     </div>
     <div class="chat-msgs" id="chatMsgs">
       <div class="empty-state">
@@ -520,7 +502,7 @@ let S={
       ]
     }
   ],
-  active:'01',selEl:null, posUnit:'px',
+  active:'01',selEl:null, posUnit:'pt',
   selGlobal:null,
   editingGlobals:false,
   chats:{'01':[],'02':[]},
@@ -625,7 +607,7 @@ Background element must always be first with t:"bg".`;
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-opus-4-5',
-        max_tokens:4000,
+        max_tokens:2000,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/png',data:refImageB64}},
           {type:'text',text:prompt}
@@ -634,14 +616,8 @@ Background element must always be first with t:"bg".`;
     });
     const data=await res.json();
     const raw=data.content?.[0]?.text||'';
-    // strip markdown fences
-    let clean=raw.replace(/```json|```/g,'').trim();
-    // if JSON was truncated, try to close it
-    if(!clean.endsWith(']')){
-      // find last complete object (ends with })
-      const lastClose=clean.lastIndexOf('}');
-      if(lastClose>0) clean=clean.substring(0,lastClose+1)+']';
-    }
+    // strip any accidental markdown fences
+    const clean=raw.replace(/```json|```/g,'').trim();
     const els=JSON.parse(clean);
     // store for createTpl to pick up
     window._pendingEls=els;
@@ -649,7 +625,7 @@ Background element must always be first with t:"bg".`;
     btn.textContent='Re-analyze';
     btn.disabled=false;
   }catch(err){
-    document.getElementById('analyzeStatus').textContent=`Error: ${err.message} — try again or simplify the slide`;
+    document.getElementById('analyzeStatus').textContent=`Error: ${err.message}`;
     btn.textContent='✦ Analyze with AI';
     btn.disabled=false;
   }
@@ -997,33 +973,49 @@ document.addEventListener('mousemove',e=>{
   refreshMag();
 });
 
-// ── KEYBOARD SHORTCUTS (single unified listener) ──
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==='m'){
+    const tag=document.activeElement.tagName;
+    if(tag!=='INPUT'&&tag!=='TEXTAREA'){
+      e.preventDefault(); setMagMode(true);
+    }
+  }
+  if(e.key==='m'&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey){
+    const tag=document.activeElement.tagName;
+    if(tag!=='INPUT'&&tag!=='TEXTAREA'){ setMagMode(false); }
+  }
+});
+
+// ── ARROW KEY NUDGE ──
 document.addEventListener('keydown',e=>{
   const tag=document.activeElement.tagName;
-  const typing=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
-
-  // Magnifier: ⌘M = on, M = off
-  if((e.metaKey||e.ctrlKey)&&e.key==='m'&&!typing){ e.preventDefault(); setMagMode(true); return; }
-  if(e.key==='m'&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&!typing){ setMagMode(false); return; }
-
-  // Undo: ⌘Z
-  if((e.metaKey||e.ctrlKey)&&e.key==='z'&&!e.shiftKey&&!typing){ e.preventDefault(); undo(); return; }
-
-  // Escape: close context menu / deselect
-  if(e.key==='Escape'){ hideCtx(); return; }
-
-  // Arrow nudge (skip when typing)
-  if(typing) return;
-  const arrows={ArrowLeft:['x',-1],ArrowRight:['x',1],ArrowUp:['y',-1],ArrowDown:['y',1]};
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  const arrows={'ArrowLeft':['x',-1],'ArrowRight':['x',1],'ArrowUp':['y',-1],'ArrowDown':['y',1]};
   if(!arrows[e.key]) return;
-  const tpl=S.templates.find(t=>t.id===S.active); if(!tpl) return;
-  const target=S.selGlobal!==null?S.globals[S.selGlobal]:S.selEl!==null?tpl.els[S.selEl]:null;
+  const tpl=S.templates.find(t=>t.id===S.active);
+  if(!tpl) return;
+  // figure out what's selected
+  let target=null;
+  if(!S.editingGlobals && S.selEl!==null) target=tpl.els[S.selEl];
+  else if(S.editingGlobals && S.selGlobal!==null) target=S.globals[S.selGlobal];
   if(!target||target.t==='bg') return;
   e.preventDefault();
-  const [prop,dir]=arrows[e.key];
+  const [prop, dir]=arrows[e.key];
+  const step = e.shiftKey ? 10*PX2PT : PX2PT; // shift = 10px jump
   pushHistory();
-  target[prop]=Math.round(((target[prop]||0)+dir*(e.shiftKey?10*PX2PT:PX2PT))*100)/100;
+  target[prop]=Math.round(((target[prop]||0) + dir*step)*100)/100;
   renderElList(); draw();
+});
+
+// ⌘Z / Ctrl+Z undo
+document.addEventListener('keydown', e=>{
+  if((e.metaKey||e.ctrlKey) && e.key==='z' && !e.shiftKey){
+    const tag=document.activeElement.tagName;
+    // don't intercept when typing in an input/textarea
+    if(tag!=='INPUT' && tag!=='TEXTAREA' && tag!=='SELECT'){
+      e.preventDefault(); undo();
+    }
+  }
 });
 
 function draw(){
@@ -1031,86 +1023,34 @@ function draw(){
   const g=pvCanvas.getContext('2d');
   g.clearRect(0,0,pvCanvas.width,pvCanvas.height);
 
-  if(refOverlayImg && refOverlayVisible){
-    // Layer 1: reference mock (locked, full opacity)
-    g.drawImage(refOverlayImg, 0, 0, pvCanvas.width, pvCanvas.height);
-    // Layer 2: AI comp offscreen composite
-    const off=document.createElement('canvas');
-    off.width=pvCanvas.width; off.height=pvCanvas.height;
-    if(!off.width||!off.height) return;
-    renderTo(off, SC, S.selEl);
-    g.save(); g.globalAlpha=refOverlayOpacity; g.drawImage(off,0,0); g.restore();
-  } else {
+  // No ref loaded — render directly, no offscreen needed
+  if(!refOverlayImg || !refOverlayVisible){
     renderTo(pvCanvas, SC, S.selEl);
+    document.getElementById('cInfo').textContent=`preview ${CW}×${CH}  ·  export 960×540px`;
+    saveState();
+    refreshMag();
+    return;
   }
 
+  // Layer 1: reference mock — bottom, locked, full opacity
+  g.drawImage(refOverlayImg, 0, 0, pvCanvas.width, pvCanvas.height);
+
+  // Layer 2: AI comp — render offscreen then composite with opacity
+  const off=document.createElement('canvas');
+  off.width=pvCanvas.width; off.height=pvCanvas.height;
+  if(!off.width || !off.height) return;
+  renderTo(off, SC, S.selEl);
+  g.save();
+  g.globalAlpha=refOverlayOpacity;
+  g.drawImage(off, 0, 0);
+  g.restore();
+
   document.getElementById('cInfo').textContent=`preview ${CW}×${CH}  ·  export 960×540px`;
-  // Draw guides onto canvas so magnifier sees them
-  drawGuidesOnCanvas(g);
   saveState();
   refreshMag();
 }
 
 window.addEventListener('resize',resizeCanvas);
-
-// ── EL-LIST VERTICAL RESIZE ──
-(function(){
-  const handle=document.getElementById('elListResize');
-  const list=document.getElementById('elList');
-  if(!handle||!list) return;
-  let dragging=false, startY=0, startH=0;
-  handle.addEventListener('mousedown',e=>{
-    dragging=true; startY=e.clientY; startH=list.offsetHeight;
-    document.body.style.cursor='row-resize';
-    document.body.style.userSelect='none';
-  });
-  document.addEventListener('mousemove',e=>{
-    if(!dragging) return;
-    const newH=Math.max(80,Math.min(400,startH+(e.clientY-startY)));
-    list.style.height=newH+'px';
-  });
-  document.addEventListener('mouseup',()=>{
-    if(!dragging) return;
-    dragging=false;
-    document.body.style.cursor='';
-    document.body.style.userSelect='';
-  });
-})();
-(function(){
-  const handle=document.getElementById('rightResize');
-  const panel=document.getElementById('rightPanel');
-  let dragging=false, startX=0, startW=0;
-  handle.addEventListener('mousedown',e=>{
-    dragging=true; startX=e.clientX; startW=panel.offsetWidth;
-    handle.classList.add('dragging');
-    document.body.style.cursor='col-resize';
-    document.body.style.userSelect='none';
-  });
-  document.addEventListener('mousemove',e=>{
-    if(!dragging) return;
-    const newW=Math.max(220,Math.min(700,startW-(e.clientX-startX)));
-    panel.style.width=newW+'px';
-    resizeCanvas();
-  });
-  document.addEventListener('mouseup',()=>{
-    if(!dragging) return;
-    dragging=false;
-    handle.classList.remove('dragging');
-    document.body.style.cursor='';
-    document.body.style.userSelect='';
-  });
-})();
-
-// ── CHAT PANEL TOGGLE ──
-let chatOpen=true;
-function toggleChat(){
-  chatOpen=!chatOpen;
-  const panel=document.getElementById('chatPanel');
-  const btn=document.getElementById('chatToggleBtn');
-  panel.classList.toggle('collapsed',!chatOpen);
-  btn.style.display=chatOpen?'none':'flex';
-  setTimeout(resizeCanvas,210);
-}
 
 // ── PLACE MODE (click canvas to set x,y of selected element) ──
 let placeMode=false;
@@ -1243,15 +1183,9 @@ function exportGAS(){
   out.push(`// HELPER FUNCTIONS — included automatically, paste these into your Apps Script`);
   out.push(`// ${'─'.repeat(60)}`);
   out.push(``);
-  out.push(`function txt(slide, x, y, w, h, content, fs, font, weight, italic, col, align, lineSpacing, pad) {`);
-  out.push(`  if (!slide || x === undefined) { Logger.log('txt() bad call — x:'+x+' y:'+y); return null; }`);
-  out.push(`  // GAS forces a fixed inset on all text shapes. Compensate by expanding the box outward.`);
-  out.push(`  var PAD = (pad !== undefined) ? pad : 7.2;`);
-  out.push(`  var shape = slide.insertShape(SlidesApp.ShapeType.TEXT_BOX, x - PAD, y - PAD, w + PAD*2, h + PAD*2);`);
-  out.push(`  shape.getBorder().setTransparent();`);
-  out.push(`  shape.getFill().setTransparent();`);
+  out.push(`function txt(slide, x, y, w, h, content, fs, font, weight, italic, col, align, lineSpacing) {`);
+  out.push(`  var shape = slide.insertTextBox(content, x, y, w, h);`);
   out.push(`  var textRange = shape.getText();`);
-  out.push(`  textRange.setText(content);`);
   out.push(`  var style = textRange.getTextStyle();`);
   out.push(`  var isBold = (weight === 'Bold' || weight === 'Extra Bold' || weight === 'Black' || weight === 'Semi Bold');`);
   out.push(`  style.setFontSize(fs).setFontFamily(font).setBold(isBold).setItalic(italic).setForegroundColor('#' + col);`);
@@ -1261,13 +1195,37 @@ function exportGAS(){
   out.push(`    ps.setParagraphAlignment(align);`);
   out.push(`    ps.setLineSpacing(ls);`);
   out.push(`  });`);
-  out.push(`  shape.setLeft(x - PAD); shape.setTop(y - PAD);`);
-  out.push(`  shape.setWidth(w + PAD*2); shape.setHeight(h + PAD*2);`);
+  out.push(`  shape.setLeft(x); shape.setTop(y);`);
+  out.push(`  shape.setWidth(w); shape.setHeight(h);`);
   out.push(`  shape.setContentAlignment(SlidesApp.ContentAlignment.MIDDLE);`);
+  out.push(`  shape.getBorder().setTransparent();`);
+  out.push(`  shape.getFill().setTransparent();`);
   out.push(`  return shape;`);
   out.push(`}`);
   out.push(``);
-  // addFooter() removed — footer now exported per-template via globals
+  out.push(`function addFooter(slide, pageNum, sectionName, clientName, assets) {`);
+  out.push(`  // assets = { lb_monogram, lb_logo, x_icon, client_logo } — image blobs passed from Tool 2`);
+  out.push(`  // Footer bar`);
+  out.push(`  var bar = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 0, 388, 720, 17);`);
+  out.push(`  bar.getFill().setSolidFill('#0d0d0d'); bar.getBorder().setTransparent();`);
+  out.push(`  // LB Monogram (8.1×9.45pt)`);
+  out.push(`  if (assets && assets.lb_monogram) { slide.insertImage(assets.lb_monogram, 8, 390, 8.1, 9.45); } else { var _plbm = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 8, 390, 8.1, 9.45); _plbm.getFill().setSolidFill('#555555'); _plbm.getBorder().setTransparent(); }`);
+  out.push(`  // /`);
+  out.push(`  txt(slide, 24, 389, 8, 14, '/', 5, 'DM Mono', 'Normal', false, '3a3a3a', SlidesApp.ParagraphAlignment.CENTER, 100);`);
+  out.push(`  // CLIENT name`);
+  out.push(`  txt(slide, 34, 389, 70, 14, clientName || 'CLIENT', 5, 'DM Mono', 'Normal', false, 'ffffff', SlidesApp.ParagraphAlignment.START, 100);`);
+  out.push(`  // LB Wordmark (64.96×13.88pt)`);
+  out.push(`  if (assets && assets.lb_logo) { slide.insertImage(assets.lb_logo, 268, 390, 64.96, 13.88); } else { var _pllo = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 268, 390, 64.96, 13.88); _pllo.getFill().setSolidFill('#333333'); _pllo.getBorder().setTransparent(); }`);
+  out.push(`  // × icon (8.1×8.33pt)`);
+  out.push(`  if (assets && assets.x_icon) { slide.insertImage(assets.x_icon, 346, 390, 8.1, 8.33); } else { var _pxi = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 346, 390, 8.1, 8.33); _pxi.getFill().setSolidFill('#555555'); _pxi.getBorder().setTransparent(); }`);
+  out.push(`  // Client logo (63.76×13.88pt)`);
+  out.push(`  if (assets && assets.client_logo) { slide.insertImage(assets.client_logo, 364, 390, 63.76, 13.88); } else { var _pcl = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, 364, 390, 63.76, 13.88); _pcl.getFill().setSolidFill('#333333'); _pcl.getBorder().setTransparent(); }`);
+  out.push(`  // Section name`);
+  out.push(`  txt(slide, 460, 389, 200, 14, sectionName || 'SECTION', 5, 'DM Mono', 'Normal', false, '777777', SlidesApp.ParagraphAlignment.START, 100);`);
+  out.push(`  // Page number (auto-increments per slide)`);
+  out.push(`  txt(slide, 693, 389, 27, 14, String(pageNum || 1), 5, 'DM Mono', 'Normal', false, '555555', SlidesApp.ParagraphAlignment.END, 100);`);
+  out.push(`}`);
+  out.push(``);
   out.push(`// ${'─'.repeat(60)}`);
   out.push(`// SLIDE BUILD FUNCTIONS`);
   out.push(`// Each function builds one slide type onto an existing GAS slide object.`);
@@ -1279,7 +1237,6 @@ function exportGAS(){
     out.push(`// ${tpl.desc}`);
     out.push(`function buildSlide${tpl.id}(slide, pageNum, sectionName, deckTitle, clientName, assets) {`);
   // presId passed as parameter
-    out.push(`  Logger.log('  buildSlide${tpl.id} called, slide type: ' + typeof slide);`);
     out.push(`  var SW = 720;`);
     out.push(``);
 
@@ -1328,7 +1285,7 @@ function exportGAS(){
           ? lines.map(l=>`'${l.replace(/'/g,"\\'")}'`).join('+\'\\n\'+')
           : `'${(e.val||'').replace(/'/g,"\\'")}'`;
         out.push(`  // ${e.lbl||'Text'}${(e.maxChars&&e.exportMaxChars)?` [maxChars:${e.maxChars}]`:''}${e._lineGroup?` [lineGroup:${e._lineGroup} ${e._lineIndex}/${e._lineTotal}]`:''}`);
-        out.push(`  txt(slide, ${v(e.x)}, ${v(e.y)}, ${v(e.w)}, ${v(e.h)}, ${valStr}, ${+(e.fs||10).toFixed(1)}, '${font}', '${weightName}', ${italic}, '${col}', ${align}, ${lineSpacing}, ${+(e.gasPad!==undefined?e.gasPad:7.2).toFixed(1)});`);
+        out.push(`  txt(slide, ${v(e.x)}, ${v(e.y)}, ${v(e.w)}, ${v(e.h)}, ${valStr}, ${+(e.fs||10).toFixed(1)}, '${font}', '${weightName}', ${italic}, '${col}', ${align}, ${lineSpacing});`);
       }
       out.push(``);
     }
@@ -1374,7 +1331,7 @@ function exportGAS(){
           else if(g.lbl==='Deck Title') valStr='deckTitle || \'DECK TITLE\'';
           else valStr=`'${(g.val||'').replace(/'/g,"\\'")}'`;
           out.push(`  // ${g.lbl}`);
-          out.push(`  txt(slide, ${v(g.x)}, ${v(g.y)}, ${v(g.w)}, ${v(g.h)}, ${valStr}, ${+(g.fs||5).toFixed(1)}, '${font}', '${wn}', ${italic}, '${col}', ${align}, ${ls}, ${+(g.gasPad!==undefined?g.gasPad:7.2).toFixed(1)});`);
+          out.push(`  txt(slide, ${v(g.x)}, ${v(g.y)}, ${v(g.w)}, ${v(g.h)}, ${valStr}, ${+(g.fs||5).toFixed(1)}, '${font}', '${wn}', ${italic}, '${col}', ${align}, ${ls});`);
         }
         out.push('');
       }
@@ -1400,19 +1357,17 @@ function exportGAS(){
   out.push(`// TEST RUNNER — run this to preview all templates in a new Slides file`);
   out.push(`// ${'─'.repeat(60)}`);
   out.push(`function test() {`);
+  out.push(`  // SlidesApp.create() makes a widescreen 16:9 presentation by default`);
   out.push(`  var pres = SlidesApp.create('LB Test — ' + new Date().toLocaleString());`);
   out.push(`  // presId not needed`);
   out.push(`  Logger.log('Slide size: ' + pres.getPageWidth() + 'pt × ' + pres.getPageHeight() + 'pt');`);
   out.push(`  var slides = pres.getSlides();`);
   out.push(`  slides[0].getShapes().forEach(function(s){ s.remove(); });`);
-  out.push(`  Logger.log('Building slide ${S.templates[0]?.id||'01'}...');`);
   out.push(`  buildSlide(slides[0], '${S.templates[0]?.id||'01'}', 1, 'Strategy', 'Test Deck', 'CLIENT', null);`);
   for(let i=1;i<S.templates.length;i++){
     const tpl=S.templates[i];
-    out.push(`  Logger.log('Building slide ${tpl.id}...');`);
     out.push(`  // Template ${tpl.id} — ${tpl.short}`);
-    out.push(`  pres.appendSlide(SlidesApp.PredefinedLayout.BLANK);`);
-    out.push(`  var s${i} = pres.getSlides()[pres.getSlides().length - 1];`);
+    out.push(`  var s${i} = pres.appendSlide(SlidesApp.PredefinedLayout.BLANK);`);
     out.push(`  s${i}.getShapes().forEach(function(sh){ sh.remove(); });`);
     out.push(`  buildSlide(s${i}, '${tpl.id}', ${i+1}, 'Strategy', 'Test Deck', 'CLIENT', null);`);
   }
@@ -1530,7 +1485,7 @@ Return ONLY a valid JSON array. No markdown. Background must be first with t:"bg
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
-        model:'claude-opus-4-5',max_tokens:4000,
+        model:'claude-opus-4-5',max_tokens:2500,
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:f.type||'image/png',data:b64}},
           {type:'text',text:prompt}
@@ -1538,12 +1493,8 @@ Return ONLY a valid JSON array. No markdown. Background must be first with t:"bg
       })
     });
     const data=await res.json();
-    let clean2=(data.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
-    if(!clean2.endsWith(']')){
-      const lc=clean2.lastIndexOf('}');
-      if(lc>0) clean2=clean2.substring(0,lc+1)+']';
-    }
-    let els=JSON.parse(clean2);
+    const raw=(data.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+    let els=JSON.parse(raw);
 
     // Strip any footer elements the AI may have accidentally included
     els=els.filter(el=>!(el.y>=380)||el.t==='bg');
@@ -1711,48 +1662,10 @@ function deleteGlobalIdx(i){
   renderGlobalList(); renderGlobalEditor(); draw();
 }
 
-
-// ── ELEMENT ACCESSORS ──
-// Returns the currently active element (template el or global) and its setter
-function activeEl(){
-  const tpl=S.templates.find(t=>t.id===S.active);
-  if(S.selGlobal!==null) return {el:S.globals[S.selGlobal],isGlobal:true,tpl:null};
-  if(tpl&&S.selEl!==null) return {el:tpl.els[S.selEl],isGlobal:false,tpl};
-  return null;
-}
-
-// Unified numeric setter (handles pt/px conversion)
-function setProp(prop,val){
-  const a=activeEl(); if(!a) return;
-  const n=parseFloat(val); if(isNaN(n)) return;
-  pushHistory();
-  const ptVal=(['x','y','w','h'].includes(prop)&&S.posUnit==='px')?Math.round((n/1.333)*100)/100:Math.round(n*100)/100;
-  a.el[prop]=ptVal;
-  a.isGlobal?renderGlobalEditor():renderElList();
-  draw();
-}
-
-// Unified string setter
-function setStr(prop,val){
-  const a=activeEl(); if(!a) return;
-  pushHistory();
-  a.el[prop]=val;
-  a.isGlobal?renderGlobalEditor():renderElList();
-  draw();
-}
-
-// Unified bool toggle
-function toggleProp(prop,val){
-  const a=activeEl(); if(!a) return;
-  pushHistory();
-  a.el[prop]=val!==undefined?val:!a.el[prop];
-  a.isGlobal?renderGlobalEditor():renderElList();
-  draw();
-}
 function nudgeGlobal(prop,deltaPx){
   if(S.selGlobal===null) return;
-  const g=S.globals[S.selGlobal];
-  g[prop]=Math.round(((g[prop]||0)+deltaPx*PX2PT)*100)/100;
+  const e=S.globals[S.selGlobal];
+  e[prop]=Math.round(((e[prop]||0)+deltaPx*PX2PT)*100)/100;
   renderGlobalEditor(); draw();
 }
 
@@ -1793,12 +1706,18 @@ function renderGlobalEditor(){
   const e=S.globals[S.selGlobal];
   const fields=[['x','X'],['y','Y'],['w','W'],['h','H']];
   const posFields=`
-    <div style="font-size:9px;color:var(--txf);font-weight:600;margin-bottom:4px;letter-spacing:.05em">POSITION &amp; SIZE <span style="color:var(--acc);font-weight:400">px (GSlides)</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <span class="ed-label" style="margin-bottom:0">Position &amp; Size</span>
+      <div style="display:flex;border:1px solid var(--b2);border-radius:4px;overflow:hidden;font-size:9px">
+        <button onclick="setUnit('pt')" style="padding:2px 7px;border:none;cursor:pointer;background:${S.posUnit==='px'?'transparent':'var(--acc)'};color:${S.posUnit==='px'?'var(--txf)':'#fff'}">pt</button>
+        <button onclick="setUnit('px')" style="padding:2px 7px;border:none;cursor:pointer;background:${S.posUnit==='px'?'var(--acc)':'transparent'};color:${S.posUnit==='px'?'#fff':'var(--txf)'}">px <span style="opacity:.6;font-size:8px">GSlides</span></button>
+      </div>
+    </div>
     <div class="ed-grid">${fields.map(([p,lbl])=>{
       const ptVal=+(e[p]||0).toFixed(2);
       const dispVal=S.posUnit==='px'?+(ptVal*1.333).toFixed(1):ptVal;
       return `
-      <div class="ed-field"><span class="ed-label">${lbl} <span style="color:var(--txf)">(px)</span></span>
+      <div class="ed-field"><span class="ed-label">${lbl} <span style="color:var(--txf)">(${S.posUnit||'pt'})</span></span>
         <div class="ed-row">
           <button class="ed-nudge" onclick="nudgeGlobal('${p}',-1)">−</button>
           <input class="ed-input" type="number" step="${S.posUnit==='px'?'1':'0.1'}" value="${dispVal}"
@@ -2012,7 +1931,10 @@ function setValUnit(prop, val){
   setVal(prop, ptVal);
 }
 
-// posUnit hardcoded to px (GSlides)
+function setUnit(unit){
+  S.posUnit=unit;
+  renderEditor(); // re-render editor with new unit display
+}
 
 function setStrVal(prop, val) {
   const tpl=S.templates.find(t=>t.id===S.active);
@@ -2136,14 +2058,22 @@ function renderEditor(){
   if(e.t!=='bg'){
     const fields=[['x','X'],['y','Y'],['w','W'],['h','H']];
     posFields=`
-    <div style="font-size:9px;color:var(--txf);font-weight:600;margin-bottom:4px;letter-spacing:.05em">POSITION &amp; SIZE <span style="color:var(--acc);font-weight:400">px (GSlides)</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <span class="ed-label" style="margin-bottom:0">Position &amp; Size</span>
+      <div style="display:flex;border:1px solid var(--b2);border-radius:4px;overflow:hidden;font-size:9px">
+        <button id="unitPt" onclick="setUnit('pt')"
+          style="padding:2px 7px;border:none;cursor:pointer;background:${S.posUnit==='px'?'transparent':'var(--acc)'};color:${S.posUnit==='px'?'var(--txf)':'#fff'}">pt</button>
+        <button id="unitPx" onclick="setUnit('px')"
+          style="padding:2px 7px;border:none;cursor:pointer;background:${S.posUnit==='px'?'var(--acc)':'transparent'};color:${S.posUnit==='px'?'#fff':'var(--txf)'}">px <span style="opacity:.6;font-size:8px">GSlides</span></button>
+      </div>
+    </div>
     <div class="ed-grid">
       ${fields.map(([p,lbl])=>{
         const ptVal=+(e[p]||0).toFixed(2);
         const dispVal=S.posUnit==='px'?+(ptVal*1.333).toFixed(1):ptVal;
         return `
         <div class="ed-field">
-          <span class="ed-label">${lbl} <span style="color:var(--txf)">(px)</span></span>
+          <span class="ed-label">${lbl} <span style="color:var(--txf)">(${S.posUnit||'pt'})</span></span>
           <div class="ed-row">
             <button class="ed-nudge" ${dis} onclick="nudge('${p}',-1)" title="-1px">−</button>
             <input class="ed-input" type="number" step="${S.posUnit==='px'?'1':'0.1'}" value="${dispVal}"
@@ -2253,16 +2183,6 @@ function renderEditor(){
           export to .gs
         </label>
       </div>
-    </div>
-    <div class="ed-field">
-      <span class="ed-label">GAS padding offset <span style="color:var(--txf);font-weight:400">(pt — compensates GAS forced inset)</span></span>
-      <div class="ed-row" style="gap:6px">
-        <input class="ed-input" type="number" min="0" max="20" step="0.1"
-          value="${+(e.gasPad!==undefined?e.gasPad:7.2).toFixed(1)}" ${ro}
-          style="flex:1" oninput="setVal('gasPad',+this.value)" onchange="setVal('gasPad',+this.value)">
-        <button onclick="setVal('gasPad',7.2)" style="padding:2px 7px;font-size:9px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--txf);cursor:pointer" title="Reset to GAS default">reset</button>
-      </div>
-      <div style="font-size:9px;color:var(--txf);margin-top:3px">Expands box equally on all 4 sides to cancel GAS 9.6px forced inset. 7.2pt = exact match.</div>
     </div>
     ${(e.val||'').includes('\n')&&!locked?`
     <div class="ed-field" style="margin-top:6px">
@@ -2678,6 +2598,7 @@ pvCanvas.addEventListener('contextmenu',e=>{
 document.addEventListener('mousedown',e=>{
   if(!document.getElementById('ctxMenu').contains(e.target)) hideCtx();
 });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') hideCtx(); });
 
 function ctxDoUpload(){
   // save target BEFORE hiding (hideCtx nulls ctxTarget)
@@ -2723,242 +2644,6 @@ function ctxDeleteEl(){
   }
   hideCtx(); renderElList(); renderGlobalList(); draw();
 }
-
-// ── RULERS & GUIDES ──
-const RS = 20; // ruler thickness px
-let guides = []; // [{type:'h'|'v', pos:ptValue}]
-let _dragGuide = null;   // {idx, type} — dragging existing guide
-let _dragFromRuler = null; // 'h'|'v' — dragging new guide from ruler
-
-function getCanvasRect(){
-  const wrap = document.getElementById('canvasWrap');
-  const wrapR = wrap.getBoundingClientRect();
-  const cvR = pvCanvas.getBoundingClientRect();
-  return {
-    wrap: wrapR,
-    cv: cvR,
-    // canvas position relative to wrap
-    left: cvR.left - wrapR.left,
-    top:  cvR.top  - wrapR.top,
-    w: cvR.width,
-    h: cvR.height
-  };
-}
-
-function ptToScreenH(pt){ // pt → px relative to wrap for vertical guide
-  const r = getCanvasRect();
-  return r.left + (pt / SW) * r.w;
-}
-function ptToScreenV(pt){ // pt → px relative to wrap for horizontal guide
-  const r = getCanvasRect();
-  return r.top + (pt / SH) * r.h;
-}
-function screenToPtH(px){ // px relative to wrap → pt (horizontal)
-  const r = getCanvasRect();
-  return Math.round(((px - r.left) / r.w) * SW * 10) / 10;
-}
-function screenToPtV(py){ // py relative to wrap → pt (vertical)
-  const r = getCanvasRect();
-  return Math.round(((py - r.top) / r.h) * SH * 10) / 10;
-}
-
-function drawGuidesOnCanvas(g){
-  if(!guides.length) return;
-  g.save();
-  // Scale line width to remain ~1.5px visually regardless of canvas internal size
-  const visiblePx = 1.5 * (pvCanvas.width / pvCanvas.getBoundingClientRect().width);
-  g.strokeStyle='rgba(0,210,255,0.9)';
-  g.lineWidth = visiblePx;
-  g.setLineDash([6,4]);
-  guides.forEach(guide=>{
-    if(guide.type==='v'){
-      const x = Math.round((guide.pos / SW) * pvCanvas.width) + 0.5;
-      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, pvCanvas.height); g.stroke();
-    } else {
-      const y = Math.round((guide.pos / SH) * pvCanvas.height) + 0.5;
-      g.beginPath(); g.moveTo(0, y); g.lineTo(pvCanvas.width, y); g.stroke();
-    }
-  });
-  g.setLineDash([]);
-  g.restore();
-}
-
-function drawRulers(){
-  const wrap = document.getElementById('canvasWrap');
-  if(!wrap || !pvCanvas.width) return;
-  const wW = wrap.clientWidth, wH = wrap.clientHeight;
-  const r = getCanvasRect();
-
-  // Size ruler canvases
-  const rh = document.getElementById('rulerH');
-  rh.style.cssText = `position:absolute;top:0;left:${RS}px;width:${wW-RS}px;height:${RS}px;pointer-events:all;cursor:s-resize;z-index:20;`;
-  rh.width = wW - RS; rh.height = RS;
-  const rv = document.getElementById('rulerV');
-  rv.style.cssText = `position:absolute;top:${RS}px;left:0;width:${RS}px;height:${wH-RS}px;pointer-events:all;cursor:e-resize;z-index:20;`;
-  rv.width = RS; rv.height = wH - RS;
-
-  const bg = '#1e1e1e', tick = '#666', lbl = '#888';
-
-  // Horizontal ruler (shows X / SW values)
-  const gh = rh.getContext('2d');
-  gh.fillStyle = bg; gh.fillRect(0,0,rh.width,RS);
-  gh.strokeStyle = tick; gh.lineWidth = 0.5;
-  gh.beginPath(); gh.moveTo(0,RS-0.5); gh.lineTo(rh.width,RS-0.5); gh.stroke();
-  const pxPerPt = r.w / SW;
-  const stepPt = pxPerPt < 2 ? 100 : pxPerPt < 4 ? 50 : pxPerPt < 8 ? 20 : 10;
-  for(let pt = 0; pt <= SW; pt += stepPt){
-    const x = r.left - RS + pt * pxPerPt;
-    if(x < 0 || x > rh.width) continue;
-    const isMajor = pt % (stepPt*2) === 0;
-    gh.strokeStyle = tick;
-    gh.beginPath(); gh.moveTo(x, RS); gh.lineTo(x, isMajor ? RS-10 : RS-5); gh.stroke();
-    if(isMajor){ gh.fillStyle=lbl; gh.font='8px monospace'; gh.textAlign='center'; gh.textBaseline='bottom'; gh.fillText(pt,x,RS-1); }
-  }
-
-  // Vertical ruler (shows Y / SH values)
-  const gv = rv.getContext('2d');
-  gv.fillStyle = bg; gv.fillRect(0,0,RS,rv.height);
-  gv.strokeStyle = tick; gv.lineWidth = 0.5;
-  gv.beginPath(); gv.moveTo(RS-0.5,0); gv.lineTo(RS-0.5,rv.height); gv.stroke();
-  const pxPerPtV = r.h / SH;
-  const stepPtV = pxPerPtV < 2 ? 100 : pxPerPtV < 4 ? 50 : pxPerPtV < 8 ? 20 : 10;
-  for(let pt = 0; pt <= SH; pt += stepPtV){
-    const y = r.top - RS + pt * pxPerPtV;
-    if(y < 0 || y > rv.height) continue;
-    const isMajor = pt % (stepPtV*2) === 0;
-    gv.strokeStyle = tick;
-    gv.beginPath(); gv.moveTo(RS, y); gv.lineTo(isMajor ? RS-10 : RS-5, y); gv.stroke();
-    if(isMajor){
-      gv.save(); gv.translate(RS/2-1, y); gv.rotate(-Math.PI/2);
-      gv.fillStyle=lbl; gv.font='8px monospace'; gv.textAlign='center'; gv.textBaseline='middle';
-      gv.fillText(pt,0,0); gv.restore();
-    }
-  }
-
-  renderGuides();
-}
-
-function renderGuides(){
-  const layer = document.getElementById('guidesLayer');
-  if(!layer) return;
-  layer.innerHTML = '';
-  const r = getCanvasRect();
-
-  guides.forEach((g, i) => {
-    const el = document.createElement('div');
-    // Guide spans full wrap area, not just canvas, for easy grabbing
-    if(g.type === 'v'){
-      const x = ptToScreenH(g.pos);
-      el.style.cssText = `position:absolute;top:${RS}px;bottom:0;left:${x}px;width:5px;margin-left:-2px;cursor:ew-resize;background:transparent;z-index:16;`;
-      // visible line
-      const line = document.createElement('div');
-      line.style.cssText = `position:absolute;top:0;bottom:0;left:2px;width:1px;background:rgba(0,190,255,0.85);pointer-events:none;`;
-      el.appendChild(line);
-      // label
-      const lbl = document.createElement('div');
-      lbl.style.cssText = `position:absolute;top:2px;left:6px;background:rgba(0,140,200,.9);color:#fff;font-size:8px;font-family:monospace;padding:1px 3px;border-radius:2px;pointer-events:none;white-space:nowrap;`;
-      lbl.textContent = g.pos.toFixed(1)+'pt';
-      el.appendChild(lbl);
-    } else {
-      const y = ptToScreenV(g.pos);
-      el.style.cssText = `position:absolute;left:${RS}px;right:0;top:${y}px;height:5px;margin-top:-2px;cursor:ns-resize;background:transparent;z-index:16;`;
-      const line = document.createElement('div');
-      line.style.cssText = `position:absolute;left:0;right:0;top:2px;height:1px;background:rgba(0,190,255,0.85);pointer-events:none;`;
-      el.appendChild(line);
-      const lbl = document.createElement('div');
-      lbl.style.cssText = `position:absolute;top:-14px;left:4px;background:rgba(0,140,200,.9);color:#fff;font-size:8px;font-family:monospace;padding:1px 3px;border-radius:2px;pointer-events:none;white-space:nowrap;`;
-      lbl.textContent = g.pos.toFixed(1)+'pt';
-      el.appendChild(lbl);
-    }
-    el.addEventListener('mousedown', e => {
-      e.stopPropagation(); e.preventDefault();
-      _dragGuide = {idx: i, type: g.type};
-      document.body.style.cursor = g.type==='v'?'ew-resize':'ns-resize';
-    });
-    el.addEventListener('dblclick', e => {
-      e.stopPropagation();
-      guides.splice(i, 1);
-      renderGuides();
-    });
-    layer.appendChild(el);
-  });
-}
-
-// Drag from rulers to create new guides
-document.getElementById('rulerH').addEventListener('mousedown', e => {
-  e.preventDefault(); _dragFromRuler = 'h';
-  document.body.style.cursor = 'ns-resize';
-});
-document.getElementById('rulerV').addEventListener('mousedown', e => {
-  e.preventDefault(); _dragFromRuler = 'v';
-  document.body.style.cursor = 'ew-resize';
-});
-document.getElementById('rulerCorner').addEventListener('dblclick', () => { guides=[]; renderGuides(); });
-
-document.addEventListener('mousemove', e => {
-  const wrap = document.getElementById('canvasWrap');
-  if(!wrap) return;
-  const wrapR = wrap.getBoundingClientRect();
-  const px = e.clientX - wrapR.left;
-  const py = e.clientY - wrapR.top;
-
-  if(_dragFromRuler){
-    // Show live preview line
-    let prev = document.getElementById('guidePreview');
-    if(!prev){ prev = document.createElement('div'); prev.id='guidePreview'; wrap.appendChild(prev); }
-    if(_dragFromRuler === 'h'){
-      prev.style.cssText = `position:absolute;left:${RS}px;right:0;top:${py}px;height:1px;background:rgba(0,190,255,0.6);pointer-events:none;z-index:28;`;
-    } else {
-      prev.style.cssText = `position:absolute;top:${RS}px;bottom:0;left:${px}px;width:1px;background:rgba(0,190,255,0.6);pointer-events:none;z-index:28;`;
-    }
-  }
-
-  if(_dragGuide !== null){
-    const g = guides[_dragGuide.idx];
-    if(_dragGuide.type === 'v'){
-      g.pos = Math.max(0, Math.min(SW, screenToPtH(px)));
-    } else {
-      g.pos = Math.max(0, Math.min(SH, screenToPtV(py)));
-    }
-    renderGuides();
-  }
-});
-
-document.addEventListener('mouseup', e => {
-  const wrap = document.getElementById('canvasWrap');
-  const prev = document.getElementById('guidePreview');
-  if(prev) prev.remove();
-
-  if(_dragFromRuler && wrap){
-    const wrapR = wrap.getBoundingClientRect();
-    const px = e.clientX - wrapR.left;
-    const py = e.clientY - wrapR.top;
-    if(_dragFromRuler === 'h'){
-      const pt = screenToPtV(py);
-      if(pt >= 0 && pt <= SH) guides.push({type:'h', pos: pt});
-    } else {
-      const pt = screenToPtH(px);
-      if(pt >= 0 && pt <= SW) guides.push({type:'v', pos: pt});
-    }
-    renderGuides();
-    _dragFromRuler = null;
-    document.body.style.cursor = '';
-  }
-
-  if(_dragGuide !== null){
-    _dragGuide = null;
-    document.body.style.cursor = '';
-  }
-});
-
-// Hook into resizeCanvas
-const _origResizeCanvas2 = resizeCanvas;
-resizeCanvas = function(){
-  _origResizeCanvas2();
-  setTimeout(drawRulers, 50);
-};
-window.addEventListener('resize', drawRulers);
-
 
 // ── PERSIST ──
 const SAVE_KEY = 'lb_deck_builder_v1';
@@ -3085,12 +2770,8 @@ document.fonts.ready.then(() => {
   const first=S.templates[0]?.id||'01';
   selectTpl(S.active&&S.templates.find(t=>t.id===S.active)?S.active:first);
   resizeCanvas();
-  setTimeout(drawRulers, 100);
 });
 </script>
-<!-- Chat toggle button (shown when panel is collapsed) -->
-<button class="chat-toggle" id="chatToggleBtn" onclick="toggleChat()" title="Open AI Assistant" style="display:none">✦</button>
-
 <!-- Right-click context menu -->
 <div id="ctxMenu" style="
   display:none;position:fixed;z-index:9000;
