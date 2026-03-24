@@ -1343,7 +1343,7 @@ select option { background: var(--s2); }
 
   </style>
 </head>
-<body style="padding-top: 48px; margin: 0;">
+<body style="padding-top: 48px; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
 
 <!-- ══ TAB SWITCHER NAV ══ -->
 <nav id="tabNav" style="position:fixed;top:0;left:0;right:0;height:48px;background:#111;z-index:9999;display:flex;align-items:center;gap:0;padding:0 16px;border-bottom:1px solid #333;">
@@ -1352,7 +1352,7 @@ select option { background: var(--s2); }
 </nav>
 
 <!-- ══ TOOL 1: TEMPLATE DESIGNER ══ -->
-<div id="tool1-pane">
+<div id="tool1-pane" style="display:flex;height:calc(100vh - 48px);overflow:hidden;">
 <div class="sidebar">
   <div class="sb-logo">
     <div class="sb-mark">
@@ -1644,7 +1644,7 @@ select option { background: var(--s2); }
 </div>
 
 <!-- ══ TOOL 2: DECK BUILDER WIZARD ══ -->
-<div id="tool2-pane" style="display:none">
+<div id="tool2-pane" style="display:none;height:calc(100vh - 48px);overflow:hidden;flex-direction:column;">
 <!-- PROGRESS OVERLAY -->
 <div id="progressOverlay">
   <div class="progress-box">
@@ -9103,8 +9103,8 @@ async function doSwapAIRewrite(newTplId) {
 <script>
 // ── TAB SWITCHING ──
 function switchTab(tab) {
-  document.getElementById('tool1-pane').style.display = tab === 1 ? 'block' : 'none';
-  document.getElementById('tool2-pane').style.display = tab === 2 ? 'block' : 'none';
+  document.getElementById('tool1-pane').style.display = tab === 1 ? 'flex' : 'none';
+  document.getElementById('tool2-pane').style.display = tab === 2 ? 'flex' : 'none';
   document.getElementById('tab1').style.color = tab === 1 ? '#fff' : '#888';
   document.getElementById('tab1').style.borderBottom = tab === 1 ? '2px solid #F97316' : '2px solid transparent';
   document.getElementById('tab2').style.color = tab === 2 ? '#fff' : '#888';
