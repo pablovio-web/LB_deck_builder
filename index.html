@@ -4,18 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LB Deck Builder</title>
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LB Deck Builder — Template Studio</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" rel="stylesheet">
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LB Deck Builder — Tool 2</title>
+  
 
-  /* ── TOOL 1 STYLES ── */
   <style>
+  /* ══ TOOL 1 STYLES ══ */
+  
 @font-face {
   font-family: 'PP Neue Montreal';
   font-weight: 100;
@@ -250,10 +246,12 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
 .btn-cancel{padding:7px 13px;background:transparent;border:1px solid var(--b2);border-radius:6px;color:var(--txd);font-size:11px;cursor:pointer;}
 .btn-cancel:hover{background:var(--s2);}
 .btn-ok{padding:7px 13px;background:var(--acc);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;}
-</style>
 
-  /* ── TOOL 2 STYLES ── */
+  </style>
+
   <style>
+  /* ══ TOOL 2 STYLES ══ */
+  
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Inter+Tight:ital,wght@0,400;0,700;0,800;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1342,17 +1340,16 @@ select option { background: var(--s2); }
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
-</style>
-</head>
-<body style="padding-top: 48px;">
 
+  </style>
+</head>
+<body style="padding-top: 48px; margin: 0;">
 
 <!-- ══ TAB SWITCHER NAV ══ -->
 <nav id="tabNav" style="position:fixed;top:0;left:0;right:0;height:48px;background:#111;z-index:9999;display:flex;align-items:center;gap:0;padding:0 16px;border-bottom:1px solid #333;">
   <button id="tab1" onclick="switchTab(1)" style="background:none;border:none;padding:12px 20px;font-size:14px;cursor:pointer;color:#fff;border-bottom:2px solid #F97316;font-family:system-ui,-apple-system,sans-serif;">🎨 Template Designer</button>
   <button id="tab2" onclick="switchTab(2)" style="background:none;border:none;padding:12px 20px;font-size:14px;cursor:pointer;color:#888;border-bottom:2px solid transparent;font-family:system-ui,-apple-system,sans-serif;">🚀 Deck Builder</button>
 </nav>
-
 
 <!-- ══ TOOL 1: TEMPLATE DESIGNER ══ -->
 <div id="tool1-pane">
@@ -9104,8 +9101,7 @@ async function doSwapAIRewrite(newTplId) {
 </script>
 
 <script>
-
-// ══ TAB SWITCHING ══
+// ── TAB SWITCHING ──
 function switchTab(tab) {
   document.getElementById('tool1-pane').style.display = tab === 1 ? 'block' : 'none';
   document.getElementById('tool2-pane').style.display = tab === 2 ? 'block' : 'none';
@@ -9113,8 +9109,9 @@ function switchTab(tab) {
   document.getElementById('tab1').style.borderBottom = tab === 1 ? '2px solid #F97316' : '2px solid transparent';
   document.getElementById('tab2').style.color = tab === 2 ? '#fff' : '#888';
   document.getElementById('tab2').style.borderBottom = tab === 2 ? '2px solid #F97316' : '2px solid transparent';
+  // Trigger resize to fix canvas rendering when switching tabs
+  window.dispatchEvent(new Event('resize'));
 }
-
 </script>
 
 </body>
