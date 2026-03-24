@@ -558,6 +558,35 @@ textarea::placeholder { color: var(--txf); }
   backdrop-filter: blur(4px);
 }
 .modal-overlay.t2-open { display: flex; }
+
+/* ── TOPBAR MENU DRAWER ── */
+.t2-menu-drawer {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--s1);
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 200;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  flex-direction: column;
+  gap: 2px;
+}
+.t2-menu-drawer.t2-open { display: flex; }
+.t2-menu-item {
+  width: 100%;
+  text-align: left !important;
+  padding: 8px 12px !important;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.t2-menu-item:hover { background: var(--s3); }
+.t2-menu-sep { height: 1px; background: var(--b1); margin: 4px 0; }
+
 .t2-modal {
   background: var(--s1);
   border: 1px solid var(--b2);
@@ -1663,19 +1692,26 @@ select option { background: var(--s2); }
   <div class="logo"><span>LB</span> Deck Builder</div>
   <div class="t2-badge">Tool 2 — v4</div>
   <div class="topbar-right">
-    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" title="Anthropic API key" style="width:180px;background:var(--s2);border:1px solid var(--b1);color:var(--tx);font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:4px;outline:none;" oninput="saveApiKey(this.value)">
-    <button class="btn-sm" onclick="openStudio()">⬡ Template Studio</button>
-    <button class="btn-sm" onclick="openImageLibrary()">🖼 Images</button>
-    <button class="btn-sm" onclick="saveSession()">↓ Save Session</button>
-    <button class="btn-sm" onclick="document.getElementById('loadSessionInput').click()">↑ Load Session</button>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-…" title="Anthropic API key" style="width:140px;background:var(--s2);border:1px solid var(--b1);color:var(--tx);font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:4px;outline:none;" oninput="saveApiKey(this.value)">
+    <button class="btn-sm" onclick="openExportModal()">↓ Export .gs</button>
+    <button class="btn-sm" onclick="resetDeck()">＋ New Deck</button>
+    <div style="position:relative;display:inline-block;">
+      <button class="btn-sm" id="t2MenuToggle" onclick="document.getElementById('t2MenuDrawer').classList.toggle('t2-open')" style="font-size:16px;padding:4px 10px;">☰</button>
+      <div id="t2MenuDrawer" class="t2-menu-drawer">
+        <button class="btn-sm t2-menu-item" onclick="openStudio();document.getElementById('t2MenuDrawer').classList.remove('t2-open')">⬡ Template Studio</button>
+        <button class="btn-sm t2-menu-item" onclick="openImageLibrary();document.getElementById('t2MenuDrawer').classList.remove('t2-open')">🖼 Images</button>
+        <div class="t2-menu-sep"></div>
+        <button class="btn-sm t2-menu-item" onclick="saveSession();document.getElementById('t2MenuDrawer').classList.remove('t2-open')">↓ Save Session</button>
+        <button class="btn-sm t2-menu-item" onclick="document.getElementById('loadSessionInput').click();document.getElementById('t2MenuDrawer').classList.remove('t2-open')">↑ Load Session</button>
+        <div class="t2-menu-sep"></div>
+        <button class="btn-sm t2-menu-item" id="btnLoadTplLib" onclick="document.getElementById('loadTemplateLibInput').click();document.getElementById('t2MenuDrawer').classList.remove('t2-open')" title="Load Tool 1 JSON">📐 Load Tpl Library</button>
+        <button class="btn-sm t2-menu-item" onclick="document.getElementById('loadMemoryInput').click();document.getElementById('t2MenuDrawer').classList.remove('t2-open')" title="Load lb_memory.json">🧠 Load Memory</button>
+        <button class="btn-sm t2-menu-item" onclick="saveMemoryFile();document.getElementById('t2MenuDrawer').classList.remove('t2-open')">💾 Save Memory</button>
+      </div>
+    </div>
     <input type="file" id="loadTemplateLibInput" accept=".json,.gs,.js" style="display:none" onchange="loadTemplateLibrary(event)" onclick="this.value=null">
     <input type="file" id="loadSessionInput" accept=".json" style="display:none" onchange="loadSession(event)">
-    <button class="btn-sm" id="btnLoadTplLib" onclick="document.getElementById('loadTemplateLibInput').click()" title="Load your Tool 1 exported JSON to update template slot constraints">📐 Load Tpl Library</button>
-    <button class="btn-sm" onclick="document.getElementById('loadMemoryInput').click()" title="Load your lb_memory.json preferences file">🧠 Load Memory</button>
     <input type="file" id="loadMemoryInput" accept=".json" style="display:none" onchange="loadMemoryFile(event)">
-    <button class="btn-sm" onclick="saveMemoryFile()" title="Save updated lb_memory.json with learnings from this session">💾 Save Memory</button>
-    <button class="btn-sm" onclick="openExportModal()">↓ Export .gs</button>
-    <button class="btn-sm" onclick="resetDeck()" title="Clear everything and start a new deck">＋ New Deck</button>
   </div>
 </div>
 
@@ -1801,7 +1837,7 @@ Section 2: Our Solution
 </div>
 
 <!-- IMAGE LIBRARY MODAL -->
-<div class="t2-modal-overlay" id="imageLibraryModal">
+<div class="modal-overlay" id="imageLibraryModal">
   <div class="t2-modal" style="width:780px;max-height:88vh">
     <div class="t2-modal-head">
       <div class="t2-modal-title">🖼 Image Library</div>
@@ -1869,7 +1905,7 @@ Section 2: Our Solution
 </div>
 
 <!-- GAS EXPORT MODAL -->
-<div class="t2-modal-overlay" id="exportModal">
+<div class="modal-overlay" id="exportModal">
   <div class="t2-modal" style="width:700px">
     <div class="t2-modal-head">
       <div class="t2-modal-title">Export Google Apps Script</div>
@@ -5174,6 +5210,11 @@ function saveState(){
     localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
     const el=document.getElementById('saveStatus');
     if(el){ el.textContent='✓ autosaved'; setTimeout(()=>el.textContent='',2000); }
+    // Auto-sync Tool 1 templates to Tool 2's HARDCODED_LIBRARY
+    if(typeof HARDCODED_LIBRARY !== 'undefined' && S.templates){
+      HARDCODED_LIBRARY.length = 0;
+      S.templates.forEach(t => HARDCODED_LIBRARY.push(t));
+    }
   }catch(e){ console.warn('autosave failed',e); }
 }
 
@@ -9109,6 +9150,15 @@ function switchTab(tab) {
   document.getElementById('tab1').style.borderBottom = tab === 1 ? '2px solid #F97316' : '2px solid transparent';
   document.getElementById('tab2').style.color = tab === 2 ? '#fff' : '#888';
   document.getElementById('tab2').style.borderBottom = tab === 2 ? '2px solid #F97316' : '2px solid transparent';
+  // When switching TO Tool 2, sync Tool 1's templates into HARDCODED_LIBRARY
+  if (tab === 2 && typeof S !== 'undefined' && S.templates && typeof HARDCODED_LIBRARY !== 'undefined') {
+    HARDCODED_LIBRARY.length = 0;
+    S.templates.forEach(t => HARDCODED_LIBRARY.push(t));
+    console.log('✅ Synced ' + S.templates.length + ' templates from Tool 1 → Tool 2');
+  }
+  // Close menu drawer if open
+  var drawer = document.getElementById('t2MenuDrawer');
+  if (drawer) drawer.classList.remove('t2-open');
   // Trigger resize to fix canvas rendering when switching tabs
   window.dispatchEvent(new Event('resize'));
 }
