@@ -344,6 +344,7 @@ body {
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  height: 0; /* forces flex:1 to fill remaining space */
 }
 
 /* ── PANEL SHARED ── */
@@ -482,23 +483,24 @@ textarea::placeholder { color: var(--txf); }
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 12px;
+  padding: 16px;
   position: relative;
 }
 .workspace-canvas-wrap {
   position: relative;
-  width: 100%;
-  max-width: 860px;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
   border: 1px solid var(--b2);
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 8px 40px rgba(0,0,0,.6);
-  flex-shrink: 0;
 }
 .workspace-canvas-wrap canvas {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
 }
 .workspace-empty {
   display: flex;
