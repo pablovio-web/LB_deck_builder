@@ -66,8 +66,10 @@
   --f-bask:'Libre Baskerville',serif;
   --f-dmmono:'DM Mono',monospace;
 }
-html,body{height:100%;overflow:hidden;}
-body{font-family:var(--sans);background:var(--bg);color:var(--tx);display:flex;height:100vh;font-size:13px;}
+html,body{height:100%;overflow:hidden;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--tx);display:flex;flex-direction:column;height:100vh;font-size:13px;}
+#tool1-pane{flex:1;display:flex;overflow:hidden;min-height:0;}
+#tool2-pane{flex:1;overflow:hidden;min-height:0;}
 .sidebar{width:214px;min-width:214px;background:var(--surface);border-right:1px solid var(--b1);display:flex;flex-direction:column;}
 .sb-logo{padding:17px 15px 13px;border-bottom:1px solid var(--b1);}
 .sb-mark{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
@@ -277,16 +279,7 @@ button.send:disabled{opacity:.28;cursor:not-allowed;}
   --serif: 'Libre Baskerville', serif;
 }
 
-body {
-  background: var(--bg);
-  color: var(--tx);
-  font-family: var(--mono);
-  font-size: 12px;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
+/* body styles merged into Tool 1 section above */
 
 /* ── TOPBAR ── */
 .topbar {
@@ -1399,7 +1392,7 @@ select option { background: var(--s2); }
 </nav>
 
 <!-- ══ TOOL 1: TEMPLATE DESIGNER ══ -->
-<div id="tool1-pane" style="display:flex;height:calc(100vh - 48px);overflow:hidden;">
+<div id="tool1-pane">
 <div class="sidebar">
   <div class="sb-logo">
     <div class="sb-mark">
@@ -1691,7 +1684,7 @@ select option { background: var(--s2); }
 </div>
 
 <!-- ══ TOOL 2: DECK BUILDER WIZARD ══ -->
-<div id="tool2-pane" style="display:none;height:calc(100vh - 48px);overflow:hidden;flex-direction:column;min-height:0;">
+<div id="tool2-pane" style="display:none;flex-direction:column;">
 <!-- PROGRESS OVERLAY -->
 <div id="progressOverlay">
   <div class="progress-box">
@@ -2752,7 +2745,18 @@ document.addEventListener('keydown',e=>{
   if(!arrows[e.key]) return;
   const tpl=S.templates.find(t=>t.id===S.active); if(!tpl) return;
   const target=S.selGlobal!==null?S.globals[S.selGlobal]:S.selEl!==null?tpl.els[S.selEl]:null;
-  if(!target||target.t==='bg') return;
+  if(!target||target.t==='bg'){
+    // No element selected — use Up/Down to cycle templates
+    if(e.key==='ArrowUp'||e.key==='ArrowDown'){
+      e.preventDefault();
+      var curIdx=S.templates.findIndex(function(t){return t.id===S.active;});
+      var nextIdx=e.key==='ArrowDown'?(curIdx<S.templates.length-1?curIdx+1:0):(curIdx>0?curIdx-1:S.templates.length-1);
+      selectTpl(S.templates[nextIdx].id);
+      var items=document.querySelectorAll('#tplList .tpl');
+      if(items[nextIdx]) items[nextIdx].scrollIntoView({block:'nearest',behavior:'smooth'});
+    }
+    return;
+  }
   e.preventDefault();
   const [prop,dir]=arrows[e.key];
   pushHistory();
@@ -5325,32 +5329,7 @@ document.fonts.ready.then(() => {
   setTimeout(()=>{ resizeCanvas(); drawRulers(); }, 500);
 });
 
-// ── TOOL 1: Arrow key navigation for template list ──
-document.addEventListener('keydown', function(e) {
-  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-  // Only when Tool 1 pane is visible
-  var t1pane = document.getElementById('tool1-pane');
-  if (!t1pane || t1pane.style.display === 'none') return;
-  // Don't intercept if user is typing in an input/textarea/contenteditable
-  var activeEl = document.activeElement;
-  if (activeEl) {
-    var tag = activeEl.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-    if (activeEl.contentEditable === 'true') return;
-  }
-  e.preventDefault();
-  if (typeof S === 'undefined' || !S.templates || !S.templates.length) return;
-  var curIdx = S.templates.findIndex(function(t) { return t.id === S.active; });
-  var nextIdx;
-  if (e.key === 'ArrowDown') {
-    nextIdx = curIdx < S.templates.length - 1 ? curIdx + 1 : 0;
-  } else {
-    nextIdx = curIdx > 0 ? curIdx - 1 : S.templates.length - 1;
-  }
-  selectTpl(S.templates[nextIdx].id);
-  var items = document.querySelectorAll('#tplList .tpl');
-  if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-});
+// Arrow key template navigation is now handled inside the main keydown handler above
 
 </script>
 
