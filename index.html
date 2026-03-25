@@ -8359,6 +8359,28 @@ function renderTemplateOnCanvasMultiSelect(canvas, tpl, selectedSet) {
     }
   });
 
+  // Show loading indicator if images are being fetched
+  if (imgPromises.length > 0) {
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Loading ' + imgPromises.length + ' image' + (imgPromises.length > 1 ? 's' : '') + '…', W / 2, H / 2);
+    // Show progress as images load
+    let loaded = 0;
+    const origPromises = imgPromises.map(p => p.then(() => {
+      loaded++;
+      ctx.fillStyle = '#0a0a0a';
+      ctx.fillRect(W/2 - 80, H/2 + 8, 160, 16);
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fillRect(W/2 - 60, H/2 + 12, 120, 6);
+      ctx.fillStyle = '#F97316';
+      ctx.fillRect(W/2 - 60, H/2 + 12, 120 * (loaded / imgPromises.length), 6);
+    }));
+  }
+
   // Wait for all images, then do a single synchronous draw pass in correct z-order
   Promise.all(imgPromises).then(() => {
     if (!canvas) return;
