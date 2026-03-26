@@ -68,8 +68,10 @@
 }
 html,body{height:100%;overflow:hidden;margin:0;padding:0;}
 body{font-family:var(--sans);background:var(--bg);color:var(--tx);display:flex;flex-direction:column;height:100vh;font-size:13px;}
-#tool1-pane{flex:1;display:flex;overflow:hidden;min-height:0;}
-#tool2-pane{flex:1;overflow:hidden;min-height:0;}
+#tool1-pane{flex:1;display:none;overflow:hidden;min-height:0;}
+#tool1-pane.tab-active{display:flex;}
+#tool2-pane{flex:1;display:none;flex-direction:column;overflow:hidden;min-height:0;max-height:calc(100vh - 49px);}
+#tool2-pane.tab-active{display:flex;}
 .sidebar{width:214px;min-width:214px;background:var(--surface);border-right:1px solid var(--b1);display:flex;flex-direction:column;}
 .sb-logo{padding:17px 15px 13px;border-bottom:1px solid var(--b1);}
 .sb-mark{display:flex;align-items:center;gap:8px;margin-bottom:2px;}
@@ -1392,7 +1394,7 @@ select option { background: var(--s2); }
 </nav>
 
 <!-- ══ TOOL 1: TEMPLATE DESIGNER ══ -->
-<div id="tool1-pane">
+<div id="tool1-pane" class="tab-active">
 <div class="sidebar">
   <div class="sb-logo">
     <div class="sb-mark">
@@ -1684,7 +1686,7 @@ select option { background: var(--s2); }
 </div>
 
 <!-- ══ TOOL 2: DECK BUILDER WIZARD ══ -->
-<div id="tool2-pane" style="display:none;flex-direction:column;">
+<div id="tool2-pane">
 <!-- PROGRESS OVERLAY -->
 <div id="progressOverlay">
   <div class="progress-box">
@@ -9204,8 +9206,14 @@ async function doSwapAIRewrite(newTplId) {
 <script>
 // ── TAB SWITCHING ──
 function switchTab(tab) {
-  document.getElementById('tool1-pane').style.display = tab === 1 ? 'flex' : 'none';
-  document.getElementById('tool2-pane').style.display = tab === 2 ? 'flex' : 'none';
+  var t1 = document.getElementById('tool1-pane');
+  var t2 = document.getElementById('tool2-pane');
+  // Use class toggling — no inline display overrides
+  t1.classList.toggle('tab-active', tab === 1);
+  t2.classList.toggle('tab-active', tab === 2);
+  // Remove any leftover inline display that could conflict
+  t1.style.removeProperty('display');
+  t2.style.removeProperty('display');
   document.getElementById('tab1').style.color = tab === 1 ? '#fff' : '#888';
   document.getElementById('tab1').style.borderBottom = tab === 1 ? '2px solid #F97316' : '2px solid transparent';
   document.getElementById('tab2').style.color = tab === 2 ? '#fff' : '#888';
