@@ -5225,13 +5225,35 @@ function saveStateLazy(){ clearTimeout(_saveTimer); _saveTimer=setTimeout(saveSt
 
 function saveState(){
   try{
+    // Save templates without image data to reduce size
+    const liteTemplates = S.templates.map(t => {
+      const lite = Object.assign({}, t);
+      // Strip heavy element image data for localStorage — keep coords/labels only
+      if (lite.els) {
+        lite.els = lite.els.map(el => {
+          if (el.t === 'img' && el.src && el.src.length > 500) {
+            return Object.assign({}, el, { src: '' }); // strip base64
+          }
+          return el;
+        });
+      }
+      return lite;
+    });
     const payload={
-      templates: S.templates,
+      templates: liteTemplates,
       globals: S.globals,
-      chats: S.chats,
-      imgs: imgsToB64()
+      chats: S.chats
+      // Skip imgs — they're too large for localStorage
     };
-    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+    const json = JSON.stringify(payload);
+    // Check if it'll fit (localStorage ~5MB limit)
+    if (json.length > 4 * 1024 * 1024) {
+      // Too big — save without chats
+      const small = JSON.stringify({ templates: liteTemplates, globals: S.globals, chats: {} });
+      localStorage.setItem(SAVE_KEY, small);
+    } else {
+      localStorage.setItem(SAVE_KEY, json);
+    }
     const el=document.getElementById('saveStatus');
     if(el){ el.textContent='✓ autosaved'; setTimeout(()=>el.textContent='',2000); }
     // Auto-sync Tool 1 templates to Tool 2's HARDCODED_LIBRARY
@@ -5239,7 +5261,17 @@ function saveState(){
       HARDCODED_LIBRARY.length = 0;
       S.templates.forEach(t => HARDCODED_LIBRARY.push(t));
     }
-  }catch(e){ console.warn('autosave failed',e); }
+  }catch(e){
+    console.warn('autosave failed', e);
+    // If quota exceeded, try clearing old data and saving minimal state
+    if (e.name === 'QuotaExceededError') {
+      try {
+        localStorage.removeItem(SAVE_KEY);
+        localStorage.setItem(SAVE_KEY, JSON.stringify({ templates: [], globals: S.globals, chats: {} }));
+        console.warn('localStorage quota exceeded — saved minimal state');
+      } catch(e2) { /* give up */ }
+    }
+  }
 }
 
 function loadState(){
@@ -7082,20 +7114,23 @@ async function showMemoryReport() {
 
 // ── PROGRESS HELPERS ──────────────────────────────────
 function showProgress(title, sub) {
-  document.getElementById('progressTitle').textContent = title || 'Processing…';
-  document.getElementById('progressSub').textContent = sub || '';
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('progressPct').textContent = '0%';
-  document.getElementById('progressOverlay').classList.add('t2-active');
+  var el;
+  if (el = document.getElementById('progressTitle')) el.textContent = title || 'Processing…';
+  if (el = document.getElementById('progressSub')) el.textContent = sub || '';
+  if (el = document.getElementById('progressFill')) el.style.width = '0%';
+  if (el = document.getElementById('progressPct')) el.textContent = '0%';
+  if (el = document.getElementById('progressOverlay')) el.classList.add('t2-active');
 }
 function updateProgress(pct, sub) {
+  var el;
   const p = Math.min(100, Math.max(0, Math.round(pct)));
-  document.getElementById('progressFill').style.width = p + '%';
-  document.getElementById('progressPct').textContent = p + '%';
-  if (sub !== undefined) document.getElementById('progressSub').textContent = sub;
+  if (el = document.getElementById('progressFill')) el.style.width = p + '%';
+  if (el = document.getElementById('progressPct')) el.textContent = p + '%';
+  if (sub !== undefined && (el = document.getElementById('progressSub'))) el.textContent = sub;
 }
 function hideProgress() {
-  document.getElementById('progressOverlay').classList.remove('t2-active');
+  var el = document.getElementById('progressOverlay');
+  if (el) el.classList.remove('t2-active');
 }
 
 function loadTemplateLibrary(evt) {
