@@ -3814,85 +3814,6 @@ function renderGlobalEditor(){
       style="width:100%;margin-top:8px;padding:5px;font-size:10px;border-radius:5px;cursor:pointer;border:1px solid rgba(239,68,68,.3);background:transparent;color:#ef4444">
       Remove from globals</button>`:''}`;
 }
-  const fields=[['x','X'],['y','Y'],['w','W'],['h','H']];
-  const posFields=`
-    <div style="font-size:9px;color:var(--txf);font-weight:600;margin-bottom:4px;letter-spacing:.05em">POSITION &amp; SIZE <span style="color:var(--acc);font-weight:400">px (GSlides)</span></div>
-    <div class="ed-grid">${fields.map(([p,lbl])=>{
-      const ptVal=+(e[p]||0).toFixed(2);
-      const dispVal=S.posUnit==='px'?+(ptVal*1.333).toFixed(1):ptVal;
-      return `
-      <div class="ed-field"><span class="ed-label">${lbl} <span style="color:var(--txf)">(px)</span></span>
-        <div class="ed-row">
-          <button class="ed-nudge" onclick="nudgeGlobal('${p}',-1)">−</button>
-          <input class="ed-input" type="number" step="${S.posUnit==='px'?'1':'0.1'}" value="${dispVal}"
-            onchange="setGlobalValUnit('${p}',this.value)" oninput="setGlobalValUnit('${p}',this.value)">
-          <button class="ed-nudge" onclick="nudgeGlobal('${p}',1)">+</button>
-        </div>
-      </div>`;
-    }).join('')}</div>`;
-
-  let typeField='';
-  if(e.t==='txt') typeField=`
-    <div class="ed-field"><span class="ed-label">Content</span>
-      <input class="ed-val-input" type="text" value="${(e.val||'').replace(/"/g,'&quot;')}"
-        oninput="setGlobalStr('val',this.value)">
-    </div>
-    <div class="ed-grid">
-      <div class="ed-field"><span class="ed-label">Font</span>
-        <select class="ed-select" onchange="setGlobalStr('font',this.value)">
-          ${['Inter Tight','PP Neue Montreal','Libre Baskerville','Lora','Teodor','DM Mono'].map(f=>`<option value="${f}" ${e.font===f?'selected':''}>${f}</option>`).join('')}
-        </select>
-      </div>
-      <div class="ed-field"><span class="ed-label">Align</span>
-        <select class="ed-select" onchange="setGlobalStr('align',this.value)">
-          ${['left','center','right'].map(a=>`<option value="${a}" ${e.align===a?'selected':''}>${a}</option>`).join('')}
-        </select>
-      </div>
-    </div>
-    <div class="ed-grid">
-      <div class="ed-field"><span class="ed-label">Size (pt)</span>
-        <div class="ed-row">
-          <button class="ed-nudge" onclick="nudgeGlobal('fs',-1)">−</button>
-          <input class="ed-input" type="number" step="0.5" value="${e.fs||5}"
-            oninput="setGlobalVal('fs',this.value)">
-          <button class="ed-nudge" onclick="nudgeGlobal('fs',1)">+</button>
-        </div>
-      </div>
-      <div class="ed-field"><span class="ed-label">Color</span>
-        <div class="ed-row" style="gap:5px">
-          <input type="color" value="${e.col||'#ffffff'}"
-            style="width:24px;height:24px;border:1px solid var(--b2);border-radius:3px;cursor:pointer;padding:1px;"
-            oninput="setGlobalStr('col',this.value)">
-          <input class="ed-input" style="flex:1" type="text" value="${e.col||'#ffffff'}"
-            oninput="syncColorChip(this);setGlobalStr('col',this.value)">
-        </div>
-      </div>
-    </div>
-    <div class="ed-grid">
-      <div class="ed-field"><span class="ed-label">Weight</span>
-        <select class="ed-select" onchange="setGlobalVal('weight',+this.value)">
-          <option value="100" ${(e.weight||(e.bold?700:400))===100?"selected":""}>Thin</option><option value="200" ${(e.weight||(e.bold?700:400))===200?"selected":""}>Extra Light</option><option value="300" ${(e.weight||(e.bold?700:400))===300?"selected":""}>Light</option><option value="400" ${(e.weight||(e.bold?700:400))===400?"selected":""}>Normal</option><option value="500" ${(e.weight||(e.bold?700:400))===500?"selected":""}>Medium</option><option value="600" ${(e.weight||(e.bold?700:400))===600?"selected":""}>Semi Bold</option><option value="700" ${(e.weight||(e.bold?700:400))===700?"selected":""}>Bold</option><option value="800" ${(e.weight||(e.bold?700:400))===800?"selected":""}>Extra Bold</option><option value="900" ${(e.weight||(e.bold?700:400))===900?"selected":""}>Black</option>
-        </select>
-      </div>
-      <div class="ed-field"><span class="ed-label">Italic</span>
-        <div class="ed-row" style="gap:5px;margin-top:3px">
-          <button onclick="setGlobalBool('italic')"
-            style="flex:1;padding:3px 0;font-size:10px;font-style:italic;border-radius:4px;cursor:pointer;border:1px solid ${e.italic?'var(--acc)':'var(--b2)'};background:${e.italic?'rgba(249,115,22,.15)':'transparent'};color:${e.italic?'var(--acc)':'var(--txd)'}">I</button>
-        </div>
-      </div>
-    </div>
-  `;
-  if(e.t==='rect') typeField=`
-    <div class="ed-field"><span class="ed-label">Fill color</span>
-      <div class="ed-row" style="gap:5px">
-        <input type="color" value="${e.fill||'#000000'}"
-          style="width:24px;height:24px;border:1px solid var(--b2);border-radius:3px;cursor:pointer;padding:1px;"
-          oninput="setGlobalStr('fill',this.value)">
-        <input class="ed-input" style="flex:1" type="text" value="${e.fill||'#000000'}"
-          oninput="setGlobalStr('fill',this.value)">
-      </div>
-    </div>`;
-
 
 // ── LAYER DRAG STATE ──
 let _layerDragIdx = null;
@@ -4945,7 +4866,7 @@ function duplicateEl(idx){
 
 // ── RULERS & GUIDES ──
 
-let rulerOverlay = null;
+var rulerOverlay = null;
 
 function getRulerOverlay(){
   if(rulerOverlay && document.getElementById('rulerOverlay')) return rulerOverlay;
@@ -5889,7 +5810,7 @@ ${slotLines.join('\n')}
 
 RULES:
 - FIRST GENERATION: If the user provided OUTLINE COPY (not a rewrite), use it as your primary source. Map the outline's headings, body text, and list items into the template slots. You may lightly edit for character limits or formatting, but NEVER replace the user's content with invented copy. Do NOT research or infer what the client does — use only what the outline says.
-- REWRITE: If this is a rewrite (user gave feedback), read the existing content and outline to understand the core message and tone, then write compelling new copy that FILLS every slot to its MAXIMUM character limit. Write in the same strategic, confident tone as the rest of the deck. Do not just repeat — improve.
+- REWRITE: If this is a rewrite (user gave feedback), you MUST stay on the EXACT same topic as the outline. Do NOT look up or infer external facts about the client. The outline defines who the client is and what the slide should say. Rewrite the copy to be sharper, more compelling, and FILL every slot to its MAXIMUM character limit. Same message, better words. Never confuse the client with a similarly-named company.
 - "Label" slots (e.g. "Label 01", "Label 02") must ALWAYS contain a short descriptive title for the content below them — NEVER just a number like "01". The large number is already displayed by the template. The label should name the concept (e.g. "Strategic clarity", "Market readiness").
 - Fill EVERY element with real, specific content — no placeholders
 - Respect maxChars strictly
@@ -5908,7 +5829,7 @@ Respond ONLY with JSON using exact element labels as keys, no markdown:
   // On first gen: use outline verbatim. On rewrite/feedback: use outline as context only, write to full char limits.
   const outlineCopy = planItem.content
     ? (feedbackCtx
-        ? `\n\nORIGINAL OUTLINE CONTEXT (for reference only — you are now rewriting freely):\n${planItem.content}\nREWRITE RULE: Read the existing content and the outline to understand the point being made, then write compelling, sharp copy that FILLS every slot to its maximum character limit. Do not just repeat the outline — improve it.`
+        ? `\n\nORIGINAL OUTLINE CONTEXT (MUST stay on this topic):\n${planItem.content}\nREWRITE RULE: You MUST stay on the exact same topic and meaning as the outline above. Do NOT research the client externally or invent facts about them. Rewrite the copy to be sharper and more compelling while FILLING every slot to its MAXIMUM character limit. Keep the same strategic point — just say it better. If the outline says "Delta" it refers to "${client}", NOT the airline.`
         : `\n\nOUTLINE COPY PROVIDED BY USER (use this as the primary source — do NOT invent new content):\n${planItem.content}`)
     : '';
   const userMsg = `Generate slide ${planItem.slideNum}: ${planItem.topic}\nSection: ${planItem.section}\nTemplate: ${tplId} — ${TEMPLATE_DESCRIPTIONS[tplId] || ''}${outlineCopy}${feedbackNote}`;
@@ -7864,8 +7785,10 @@ function openExportModal() {
         const gs = generateGasScript();
         updateProgress(90, 'Finalizing…');
         setTimeout(function() {
-          document.getElementById('exportCode').textContent = gs;
-          document.querySelector('#exportModal .modal-title').textContent =
+          var exportCodeEl = document.getElementById('exportCode');
+          if (exportCodeEl) exportCodeEl.textContent = gs;
+          var modalTitleEl = document.querySelector('#exportModal .t2-modal-title');
+          if (modalTitleEl) modalTitleEl.textContent =
             count ? `Export Google Apps Script — ${count} slide${count > 1 ? 's' : ''}` : 'Export Google Apps Script';
           updateProgress(100, 'Done!');
           setTimeout(function() {
