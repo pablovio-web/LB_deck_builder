@@ -1383,10 +1383,10 @@ select option { background: var(--s2); }
 
   </style>
 </head>
-<body style="padding-top: 48px; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
+<body style="margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
 
 <!-- ══ TAB SWITCHER NAV ══ -->
-<nav id="tabNav" style="position:fixed;top:0;left:0;right:0;height:48px;background:#111;z-index:9999;display:flex;align-items:center;gap:0;padding:0 16px;border-bottom:1px solid #333;">
+<nav id="tabNav" style="height:48px;flex-shrink:0;background:#111;z-index:9999;display:flex;align-items:center;gap:0;padding:0 16px;border-bottom:1px solid #333;">
   <button id="tab1" onclick="switchTab(1)" style="background:none;border:none;padding:12px 20px;font-size:14px;cursor:pointer;color:#fff;border-bottom:2px solid #F97316;font-family:system-ui,-apple-system,sans-serif;">🎨 Template Designer</button>
   <button id="tab2" onclick="switchTab(2)" style="background:none;border:none;padding:12px 20px;font-size:14px;cursor:pointer;color:#888;border-bottom:2px solid transparent;font-family:system-ui,-apple-system,sans-serif;">🚀 Deck Builder</button>
 </nav>
