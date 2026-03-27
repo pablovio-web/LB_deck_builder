@@ -2089,7 +2089,7 @@ let S={
     {t:'img', lbl:'Client Logo',   x:364,  y:390,  w:63.76, h:13.88, key:'client_logo', dynamic:true, dynLabel:'Client Logo', dynType:'custom'},
     // ── Right: SECTION · Page#
     {t:'txt', lbl:'SECTION',       x:460,  y:389,  w:200,   h:14,    val:'SECTION', fs:5, col:'#777777', align:'left', font:'DM Mono', dynamic:true, dynLabel:'Section Name', dynType:'label'},
-    {t:'txt', lbl:'Page Number',   x:693,  y:389,  w:27,    h:14,    val:'01', fs:5, col:'#555555', align:'right', font:'DM Mono', dynamic:true, dynLabel:'Page Number', dynType:'number'},
+    {t:'txt', lbl:'Page Number',   x:693,  y:389.75,  w:27,    h:14,    val:'01', fs:5, col:'#555555', align:'right', font:'DM Mono', dynamic:true, dynLabel:'Page Number', dynType:'number'},
   ]
 };
 
@@ -7654,7 +7654,7 @@ function generateGasScript() {
     // Footer fix — match shapes in bottom 25pt, set text + color based on bg
     try {
       var _fc = ${JSON.stringify(_footerColor)};
-      var _fs = sl.getShapes();
+      var _fs = getAllShapes(sl);
       _fs.forEach(function(sh) {
         try {
           var _t = sh.getTop(), _l = sh.getLeft();
