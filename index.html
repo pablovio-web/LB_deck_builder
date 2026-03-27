@@ -438,6 +438,16 @@ textarea::placeholder { color: var(--txf); }
 .plan-item.approved .plan-num { color: var(--grn); }
 .plan-item.current { border-color: var(--acc) !important; background: rgba(249,115,22,.12) !important; opacity: 1 !important; }
 .plan-item.current .plan-num { color: var(--acc) !important; }
+.plan-ctx-menu {
+  position: fixed; z-index: 9999; background: var(--s2); border: 1px solid var(--b2);
+  border-radius: 6px; padding: 4px 0; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  font-size: 11px; color: var(--tx);
+}
+.plan-ctx-menu div {
+  padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+}
+.plan-ctx-menu div:hover { background: var(--s3); }
+.plan-ctx-sep { height: 1px; background: var(--b1); margin: 3px 0; }
 .plan-num { font-size: 8px; color: var(--txf); min-width: 18px; }
 .plan-topic { font-size: 10px; color: var(--txd); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .plan-section { font-size: 8px; color: var(--txf); }
@@ -5602,12 +5612,146 @@ function renderPlanList() {
     const isCurrent  = idx === t2_S.current;
     div.className = 'plan-item' + (isCurrent ? ' current' : '') + (isApproved ? ' approved' : '');
     div.onclick = () => jumpToSlide(idx);
+    div.oncontextmenu = (e) => { e.preventDefault(); showPlanContextMenu(e, idx); };
     div.innerHTML = `
       <span class="plan-num">${String(item.slideNum).padStart(2,'0')}</span>
       <span class="plan-topic">${escHtml(item.topic)}</span>
       ${isApproved ? '<span class="plan-check">✓</span>' : ''}
     `;
     list.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// PLAN ITEM CONTEXT MENU (right-click)
+// ══════════════════════════════════════════════════════
+
+function showPlanContextMenu(e, idx) {
+  // Remove any existing menu
+  var old = document.getElementById('planCtxMenu');
+  if (old) old.remove();
+
+  var menu = document.createElement('div');
+  menu.id = 'planCtxMenu';
+  menu.className = 'plan-ctx-menu';
+
+  var item = t2_S.plan[idx];
+  var isApproved = !!t2_S.slides.find(s => s.slideNum === item.slideNum);
+
+  // Duplicate below
+  var dup = document.createElement('div');
+  dup.textContent = '⧉ Duplicate below';
+  dup.onclick = function() { duplicateSlide(idx); menu.remove(); };
+  menu.appendChild(dup);
+
+  // Move up
+  if (idx > 0) {
+    var up = document.createElement('div');
+    up.textContent = '↑ Move up';
+    up.onclick = function() { moveSlide(idx, -1); menu.remove(); };
+    menu.appendChild(up);
+  }
+
+  // Move down
+  if (idx < t2_S.plan.length - 1) {
+    var dn = document.createElement('div');
+    dn.textContent = '↓ Move down';
+    dn.onclick = function() { moveSlide(idx, 1); menu.remove(); };
+    menu.appendChild(dn);
+  }
+
+  // Separator
+  var sep = document.createElement('div');
+  sep.className = 'plan-ctx-sep';
+  menu.appendChild(sep);
+
+  // Delete
+  var del = document.createElement('div');
+  del.textContent = '✕ Delete slide';
+  del.style.color = '#ef4444';
+  del.onclick = function() { deleteSlideAt(idx); menu.remove(); };
+  menu.appendChild(del);
+
+  // Position
+  menu.style.left = Math.min(e.clientX, window.innerWidth - 180) + 'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight - 200) + 'px';
+  document.body.appendChild(menu);
+
+  // Close on click outside
+  setTimeout(function() {
+    document.addEventListener('click', function closeCtx() {
+      menu.remove();
+      document.removeEventListener('click', closeCtx);
+    }, { once: true });
+  }, 50);
+}
+
+function duplicateSlide(idx) {
+  var original = t2_S.plan[idx];
+  var copy = JSON.parse(JSON.stringify(original));
+  copy.topic = copy.topic + ' (copy)';
+
+  // Insert after current
+  t2_S.plan.splice(idx + 1, 0, copy);
+
+  // Also duplicate the approved slide data if it exists
+  var approvedSlide = t2_S.slides.find(s => s.slideNum === original.slideNum);
+  if (approvedSlide) {
+    var slideCopy = JSON.parse(JSON.stringify(approvedSlide));
+    slideCopy.slideNum = idx + 2; // temporary, will be renumbered
+    t2_S.slides.push(slideCopy);
+  }
+
+  // Renumber all slides
+  t2_S.plan.forEach(function(p, i) { p.slideNum = i + 1; });
+  t2_S.slides.forEach(function(s) {
+    var planItem = t2_S.plan.find(function(p) { return p.topic === s.topic && p.section === s.section; });
+    if (planItem) s.slideNum = planItem.slideNum;
+  });
+
+  // Fix slide numbers in approved slides
+  renumberSlides();
+
+  localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+  document.getElementById('planCount').textContent = t2_S.plan.length;
+  renderPlanList();
+  addChatMsg('claude', 'Duplicated slide ' + (idx + 1) + '. You can now change its template or content.');
+  jumpToSlide(idx + 1);
+}
+
+function moveSlide(idx, dir) {
+  var newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= t2_S.plan.length) return;
+  var temp = t2_S.plan[idx];
+  t2_S.plan[idx] = t2_S.plan[newIdx];
+  t2_S.plan[newIdx] = temp;
+  renumberSlides();
+  localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+  renderPlanList();
+  if (t2_S.current === idx) t2_S.current = newIdx;
+  else if (t2_S.current === newIdx) t2_S.current = idx;
+  renderPlanList();
+}
+
+function deleteSlideAt(idx) {
+  var removed = t2_S.plan.splice(idx, 1)[0];
+  t2_S.slides = t2_S.slides.filter(s => s.slideNum !== removed.slideNum);
+  renumberSlides();
+  localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+  document.getElementById('planCount').textContent = t2_S.plan.length;
+  if (t2_S.current >= t2_S.plan.length) t2_S.current = t2_S.plan.length - 1;
+  renderPlanList();
+  addChatMsg('claude', 'Removed slide "' + removed.topic + '". ' + t2_S.plan.length + ' slides remaining.');
+}
+
+function renumberSlides() {
+  t2_S.plan.forEach(function(p, i) { p.slideNum = i + 1; });
+  // Re-sync approved slide numbers based on plan order
+  t2_S.slides.forEach(function(s) {
+    var match = t2_S.plan.find(function(p) {
+      return p.topic === s.topic || (p._origSlideNum && p._origSlideNum === s.slideNum);
+    });
+    if (match) s.slideNum = match.slideNum;
   });
 }
 
