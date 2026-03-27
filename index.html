@@ -2748,8 +2748,8 @@ document.addEventListener('keydown',e=>{
     renderElList(); draw(); return;
   }
 
-  // Escape: close context menu / deselect
-  if(e.key==='Escape'){ hideCtx(); return; }
+  // Escape: close context menu + deselect all elements (so arrows can cycle templates)
+  if(e.key==='Escape'){ hideCtx(); S.selEl=null; S.selGlobal=null; selEls.clear(); renderElList(); draw(); return; }
 
   // Arrow nudge (skip when typing)
   if(typing) return;
