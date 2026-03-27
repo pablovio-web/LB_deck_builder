@@ -727,6 +727,23 @@ select option { background: var(--s2); }
 .btn-regen:hover { border-color: var(--acc); color: var(--acc); }
 .btn-regen:disabled { opacity: .4; cursor: not-allowed; }
 
+/* ── TEMPLATE SUGGESTION PICKER ── */
+.tpl-suggestions {
+  display: flex; gap: 8px; padding: 8px 12px; justify-content: center; flex-shrink: 0;
+}
+.tpl-sug-card {
+  flex: 1; max-width: 200px; border: 2px solid var(--b2); border-radius: 6px;
+  padding: 6px; cursor: pointer; transition: border-color .15s, transform .1s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: var(--s1);
+}
+.tpl-sug-card:hover { border-color: var(--acc); transform: translateY(-2px); }
+.tpl-sug-card.recommended { border-color: var(--grn); }
+.tpl-sug-card.picked { border-color: var(--acc); background: rgba(249,115,22,.1); }
+.tpl-sug-card canvas { width: 100%; border-radius: 3px; background: #111; }
+.tpl-sug-label { font-size: 9px; color: var(--txd); text-align: center; }
+.tpl-sug-rec { font-size: 8px; color: var(--grn); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
 .chat-input-row {
   border-top: 1px solid var(--b1);
   padding: 10px;
@@ -1830,6 +1847,7 @@ Section 2: Our Solution
       </div>
     </div>
 
+    <div class="tpl-suggestions" id="tplSuggestions" style="display:none"></div>
     <div class="chat-actions" id="chatActions" style="display:none">
       <button class="btn-approve" id="btnApprove" onclick="approveSlide()">✓ Approve &amp; Next</button>
       <button class="btn-regen" id="btnRegen" onclick="regenSlide()">↻ Regen</button>
@@ -5303,6 +5321,118 @@ document.fonts.ready.then(() => {
 
 const TEMPLATE_DESCRIPTIONS = {"01":"Cover slide \u2014 no deck title. Use for opening slide only.","02":"Cover slide \u2014 with deck title split across 3 headline lines. Use for opening slide only.","03":"Section divider \u2014 single large chapter title + 2-line subtitle. Use to introduce a new major section.","04":"Section divider \u2014 2-line chapter title + chapter number + subtitle. Use for numbered sections.","05":"Section divider \u2014 2-line headline, no body. Bold visual break.","06":"Section divider \u2014 6-line large headline, no body. Use for dramatic single-idea statements.","07":"Content \u2014 6-line large headline + 2-line body subtext. Use for big bold statements with a supporting line.","08":"Content \u2014 single large headline + 1-line subtext. Use for a single powerful statement with minimal support.","09":"Content \u2014 5-line headline + body paragraph. Decorative micro-labels. Use for complex title-led content.","10":"Content \u2014 5-line headline + 2-line body. Clean large title with brief support.","11":"Quote slide \u2014 real attributed quote + image (black/green background). Sentence case only. Use ONLY for actual quoted speech from a named person.","12":"Quote slide \u2014 real attributed quote + image (yellow background). Sentence case only. Use ONLY for actual quoted speech from a named person.","13":"Quote slide \u2014 real attributed quote + image (white background). Sentence case only. Use ONLY for actual quoted speech from a named person.","14":"Quote slide \u2014 large centred quote, sentence case, NO image. Use for a single powerful quote. MUST include opening quote mark in the New Text slot (\u201c) and closing mark in the Closing Quote Mark slot (\u201e). The only non-caps template in the library.","15":"Content \u2014 4-line headline + 6-line body paragraph + image placeholder (black). Great alternative to 19 — use this to add visual variety. The image area will be filled manually later.","16":"Content \u2014 4-line headline + 6-line body paragraph + image placeholder (white). Great alternative to 20 — use this to add visual variety. The image area will be filled manually later.","17":"Content \u2014 3-line headline + body paragraph left + numbered list of 4 items right (black). Use when you have a heading, paragraph AND 4 distinct list points.","18":"Content \u2014 3-line headline + body paragraph left + numbered list of 4 items right (white). Same as 17 but light background.","19":"Content \u2014 3-line headline + 7-line body paragraph, no image (black). Use for a heading with a full paragraph of body copy. BEST FOR: single ideas with explanation.","20":"Content \u2014 3-line headline + 7-line body paragraph, no image (white). Same as 19 but white background.","21":"Content \u2014 3-line headline + 7-line body paragraph, no image (green accent). Same as 19 but green.","22":"Content \u2014 3-line headline + 3 image placeholders + 3 columns of body text. Use for 3-column image + text layouts.","23":"Content \u2014 3-line headline + 3 image placeholders + 3 card items with title + body. Use for 3-column card layouts.","24":"Content \u2014 3-line headline + 6 items with title + body (no images). Use when presenting 6 distinct points or features.","25":"Content \u2014 3-line headline + 6 columns with title + body (no images). Use for 6-column grid layouts.","26":"Content \u2014 3-line headline + 3 big numbers with label + body (black). Use for statistics or 3 key metrics.","27":"Content \u2014 3-line headline + 3 big numbers with label + body (white). Same as 26 but white background.","28":"Content \u2014 agenda slide with AGENDA title + 9 agenda items list. Use for session agendas.","29":"Content \u2014 agenda slide with 9 items list (alternate layout). Use for session agendas.","30":"Content \u2014 section navigator with active item highlighted. Use for showing where we are in a presentation.","31":"Content \u2014 section navigator with body description. Use for section intros with context.","32":"Content \u2014 timer/timing slide with hours/minutes + 3 columns of labels and body. Use for workshop timing.","33":"Content \u2014 two large stats (50% + 96%) with labels and body. Use for two key statistics.","34":"Content \u2014 single large statistic with body. Use for one key metric.","35":"Content \u2014 timer + 3 columns of labels and body (green). Same as 32 but green background.","36":"Content \u2014 two stats with labels (yellow background). Use for two key statistics.","37":"Content \u2014 single stat with body (red background). Use for one key metric.","38":"Content \u2014 4-week timeline with heading, subheading, and body per week. Use for 4-week plans or roadmaps.","39":"Content \u2014 3-column layout with 3 numbers, 3 headings, and body per column. Use for 3 parallel concepts.","40":"Case study ONLY \u2014 requires real client name, real project title, real services, and a case study image. Do NOT use for general content.","41":"Case study ONLY \u2014 requires real client name, real project title, real services, and a case study image. Do NOT use for general content.","42":"Case study ONLY \u2014 requires real client name, real project title, real services, and a case study image. Do NOT use for general content.","43":"Case study ONLY \u2014 requires real client name, real project title, real services, and a case study image. Do NOT use for general content.","44":"Content \u2014 3-tier pricing (gold/silver/bronze) with labels + body + price (black background). Use for pricing.","45":"Content \u2014 3-tier pricing (gold/silver/bronze) with labels + body + price (white background). Use for pricing.","46":"Content \u2014 timeline/schedule with 4 dates and items. Use for project timelines or next steps with dates.","47":"Content \u2014 text-only paragraph continuation slide. Use when body copy overflows from another slide.","48":"Content \u2014 people/team grid with 8 names and titles. Use for team introductions.","49":"End/thank you slide \u2014 2-line headline. Use as the final slide."};
 
+// ── Template categories for smart suggestions ──
+const TEMPLATE_CATEGORIES = {
+  cover: ['01', '02'],
+  divider: ['03', '04', '05', '06'],
+  statement: ['07', '08', '09', '10'],
+  quote: ['11', '12', '13', '14'],
+  content_img: ['15', '16', '21', '22', '23'],
+  content_text: ['19', '20', '47'],
+  content_list: ['17', '18', '24', '25'],
+  columns_numbers: ['26', '27', '39'],
+  agenda: ['28', '29', '30', '31'],
+  stats: ['32', '33', '34', '35', '36', '37'],
+  timeline: ['38', '46'],
+  case_study: ['40', '41', '42', '43'],
+  pricing: ['44', '45'],
+  people: ['48'],
+  closing: ['49']
+};
+
+function getCategoryForTemplate(tplId) {
+  for (var cat in TEMPLATE_CATEGORIES) {
+    if (TEMPLATE_CATEGORIES[cat].indexOf(tplId) !== -1) return cat;
+  }
+  return 'content_text';
+}
+
+function getSuggestedTemplates(tplId, slideContent) {
+  var category = getCategoryForTemplate(tplId);
+  var sameCategory = (TEMPLATE_CATEGORIES[category] || []).filter(function(id) { return id !== tplId; });
+
+  // For covers and closings, don't suggest alternatives
+  if (category === 'cover' || category === 'closing') return [tplId];
+
+  // Pick up to 2 alternatives from the same category
+  var alts = sameCategory.slice(0, 2);
+
+  // If fewer than 2 from same category, grab from related categories
+  if (alts.length < 2) {
+    var related = {
+      divider: ['statement'], statement: ['divider', 'content_text'],
+      quote: ['statement'], content_img: ['content_text', 'content_list'],
+      content_text: ['content_img', 'content_list'], content_list: ['content_text', 'columns_numbers'],
+      columns_numbers: ['content_list', 'stats'], stats: ['columns_numbers'],
+      timeline: ['columns_numbers'], pricing: ['columns_numbers'],
+      people: ['content_list'], agenda: ['timeline']
+    };
+    var relCats = related[category] || ['content_text'];
+    for (var i = 0; i < relCats.length && alts.length < 2; i++) {
+      var extras = (TEMPLATE_CATEGORIES[relCats[i]] || []).filter(function(id) {
+        return id !== tplId && alts.indexOf(id) === -1;
+      });
+      if (extras.length) alts.push(extras[0]);
+    }
+  }
+
+  return [tplId].concat(alts.slice(0, 2));
+}
+
+function renderTemplateSuggestions(primaryTplId) {
+  var container = document.getElementById('tplSuggestions');
+  if (!container) return;
+
+  var suggestions = getSuggestedTemplates(primaryTplId);
+  if (suggestions.length <= 1) { container.style.display = 'none'; return; }
+
+  container.innerHTML = '';
+  container.style.display = 'flex';
+
+  suggestions.forEach(function(tplId, i) {
+    var tplDef = HARDCODED_LIBRARY.find(function(t) { return t.id === tplId; });
+    if (!tplDef) return;
+
+    var card = document.createElement('div');
+    card.className = 'tpl-sug-card' + (i === 0 ? ' recommended picked' : '');
+    card.onclick = function() { pickSuggestedTemplate(tplId, card); };
+
+    var canvas = document.createElement('canvas');
+    canvas.width = 720; canvas.height = 405;
+    renderTemplateOnCanvas(canvas, tplDef, null);
+    card.appendChild(canvas);
+
+    var label = document.createElement('div');
+    label.className = 'tpl-sug-label';
+    label.textContent = (tplDef.short || tplId);
+    card.appendChild(label);
+
+    if (i === 0) {
+      var rec = document.createElement('div');
+      rec.className = 'tpl-sug-rec';
+      rec.textContent = '★ recommended';
+      card.appendChild(rec);
+    }
+
+    container.appendChild(card);
+  });
+}
+
+function pickSuggestedTemplate(tplId, card) {
+  var cards = document.querySelectorAll('.tpl-sug-card');
+  cards.forEach(function(c) { c.classList.remove('picked'); });
+  card.classList.add('picked');
+
+  if (t2_S.currentSlide && t2_S.currentSlide.templateId === tplId) return;
+
+  var planItem = t2_S.plan[t2_S.current];
+  if (planItem) {
+    planItem.templateId = tplId;
+    addChatMsg('claude', 'Switching to template ' + tplId + '… regenerating content.');
+    generateSlide(t2_S.current);
+  }
+}
+
 // ══════════════════════════════════════════════════════
 // API KEY
 const ANTHROPIC_API_KEY_FALLBACK = '';
@@ -5876,6 +6006,8 @@ async function generateSlide(idx, feedbackCtx) {
   document.getElementById('wsTplBadge').textContent = '…';
   document.getElementById('wsStatus').textContent = 'Generating…';
   document.getElementById('chatActions').style.display = 'none';
+  var _sugEl = document.getElementById('tplSuggestions');
+  if (_sugEl) _sugEl.style.display = 'none';
   document.getElementById('chatSlideLabel').textContent = 'Slide ' + planItem.slideNum;
 
   // Draw a loading skeleton on canvas
@@ -6060,7 +6192,10 @@ Respond ONLY with JSON using exact element labels as keys, no markdown:
     document.getElementById('chatActions').style.display = '';
     renderPlanList();
 
-    addChatMsg('claude', `Slide ${planItem.slideNum} ready — ${planItem.topic} using template ${tplId}. ${result.rationale || ''}\n\nApprove to continue, or give me feedback to adjust it.`);
+    // Show template suggestions (alternative templates the user can switch to)
+    renderTemplateSuggestions(tplId);
+
+    addChatMsg('claude', `Slide ${planItem.slideNum} ready — ${planItem.topic} using template ${tplId}. ${result.rationale || ''}\n\nApprove to continue, pick a different template below, or give me feedback to adjust it.`);
 
   } catch(err) {
     addChatMsg('claude', 'Error generating slide: ' + err.message);
