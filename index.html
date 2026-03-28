@@ -5781,16 +5781,22 @@ Respond ONLY with a JSON array, no markdown, no preamble:
         if (plan[i].templateId === '01' || plan[i].templateId === '02') insertIdx = i + 1;
         else break;
       }
-      // Build agenda items from section divider topics (max 9 lines)
+      // Build agenda items — populate ALL agenda template formats
+      // tpl:28/29 = "Agenda Items L1-L9", tpl:30 = "Menu Item 1-9", tpl:31 = named items
       const agendaItems = {};
       const agendaLines = [];
+      const tpl31Names = ['Storytelling','Insights','Data Graphics','Concepts Comps','Lists','Processes','Teams','Production Slides','Title Slides'];
       sectionDividers.slice(0, 9).forEach((div, i) => {
         const text = (div.section || div.topic || '').toUpperCase();
         agendaItems['Agenda Items L' + (i + 1)] = text;
+        agendaItems['Menu Item ' + (i === 1 ? '2 Active' : (i + 1))] = text;
+        if (i !== 1) agendaItems['Menu Item ' + (i + 1)] = text;
+        if (tpl31Names[i]) agendaItems[tpl31Names[i]] = text;
         agendaLines.push(text);
       });
-      // Also set merged single-field version (for templates with one "Agenda Items" field)
+      // Merged single-field versions (for merged text field templates)
       agendaItems['Agenda Items'] = agendaLines.join('\n');
+      agendaItems['Menu Items'] = agendaLines.join('\n');
       // Randomly pick tpl:28 (black) or tpl:29 (white)
       const agendaTpl = Math.random() < 0.5 ? '28' : '29';
       const agendaSlide = {
@@ -7188,14 +7194,19 @@ async function sendFeedback() {
       return;
     }
 
-    // Build agenda slots — both individual L1-L9 (old) and merged single field (new)
+    // Build agenda slots — all agenda template formats
     const agendaSlots = { 'Agenda Title': 'AGENDA', 'Section Name': 'AGENDA' };
     const agendaLinesList = [];
+    const tpl31Names2 = ['Storytelling','Insights','Data Graphics','Concepts Comps','Lists','Processes','Teams','Production Slides','Title Slides'];
     sectionTitles.slice(0, 9).forEach((title, i) => {
       agendaSlots['Agenda Items L' + (i + 1)] = title;
+      agendaSlots['Menu Item ' + (i === 1 ? '2 Active' : (i + 1))] = title;
+      if (i !== 1) agendaSlots['Menu Item ' + (i + 1)] = title;
+      if (tpl31Names2[i]) agendaSlots[tpl31Names2[i]] = title;
       agendaLinesList.push(title);
     });
     agendaSlots['Agenda Items'] = agendaLinesList.join('\n');
+    agendaSlots['Menu Items'] = agendaLinesList.join('\n');
 
     // Randomly pick black (28) or white (29)
     const agendaTpl = Math.random() < 0.5 ? '28' : '29';
