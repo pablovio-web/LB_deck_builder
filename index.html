@@ -729,19 +729,20 @@ select option { background: var(--s2); }
 
 /* ── TEMPLATE SUGGESTION PICKER ── */
 .tpl-suggestions {
-  display: flex; gap: 8px; padding: 8px 12px; justify-content: center; flex-shrink: 0;
+  display: flex; gap: 10px; padding: 10px 20px; justify-content: center;
+  flex-shrink: 0; border-top: 1px solid var(--b1);
 }
 .tpl-sug-card {
-  flex: 1; max-width: 200px; border: 2px solid var(--b2); border-radius: 6px;
-  padding: 6px; cursor: pointer; transition: border-color .15s, transform .1s;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  width: 180px; border: 2px solid var(--b2); border-radius: 6px;
+  padding: 8px; cursor: pointer; transition: border-color .15s, transform .1s;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
   background: var(--s1);
 }
 .tpl-sug-card:hover { border-color: var(--acc); transform: translateY(-2px); }
 .tpl-sug-card.recommended { border-color: var(--grn); }
-.tpl-sug-card.picked { border-color: var(--acc); background: rgba(249,115,22,.1); }
+.tpl-sug-card.picked { border-color: var(--acc); background: rgba(249,115,22,.12); }
 .tpl-sug-card canvas { width: 100%; border-radius: 3px; background: #111; }
-.tpl-sug-label { font-size: 9px; color: var(--txd); text-align: center; }
+.tpl-sug-label { font-size: 10px; color: var(--txd); text-align: center; }
 .tpl-sug-rec { font-size: 8px; color: var(--grn); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
 
 .chat-input-row {
@@ -1832,6 +1833,7 @@ Section 2: Our Solution
     </div>
 
     <div class="workspace-rationale" id="wsRationale"></div>
+    <div class="tpl-suggestions" id="tplSuggestions" style="display:none"></div>
   </div>
 
   <!-- RIGHT: CHAT -->
@@ -1847,7 +1849,6 @@ Section 2: Our Solution
       </div>
     </div>
 
-    <div class="tpl-suggestions" id="tplSuggestions" style="display:none"></div>
     <div class="chat-actions" id="chatActions" style="display:none">
       <button class="btn-approve" id="btnApprove" onclick="approveSlide()">✓ Approve &amp; Next</button>
       <button class="btn-regen" id="btnRegen" onclick="regenSlide()">↻ Regen</button>
