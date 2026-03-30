@@ -3218,7 +3218,12 @@ function exportGAS(){
   out.push(`// TEST RUNNER — run this to preview all templates in a new Slides file`);
   out.push(`// ${'─'.repeat(60)}`);
   // Build image assets object from Tool 2's image library (if available)
-  const _testImgAssignments = (typeof IMG_LIB !== 'undefined' && IMG_LIB.assignments) ? IMG_LIB.assignments : {};
+  // Strip Cloudinary transforms — GAS needs raw URLs
+  const _testRawAssignments = (typeof IMG_LIB !== 'undefined' && IMG_LIB.assignments) ? IMG_LIB.assignments : {};
+  const _testImgAssignments = {};
+  Object.keys(_testRawAssignments).forEach(function(k) {
+    _testImgAssignments[k] = (typeof cloudinaryRawUrl === 'function') ? cloudinaryRawUrl(_testRawAssignments[k]) : _testRawAssignments[k];
+  });
   const _testImgJson = JSON.stringify(_testImgAssignments, null, 2);
   out.push(`var TEST_IMAGE_URLS = ${_testImgJson};`);
   out.push(``);
@@ -8030,8 +8035,12 @@ function generateGasScript() {
   const client = document.getElementById('clientName').value.trim() || 'CLIENT';
   const title = document.getElementById('deckTitle').value.trim() || 'DECK TITLE';
 
-  // Bake image assignments into the export
-  const imgAssignments = IMG_LIB.assignments || {};
+  // Bake image assignments into the export — strip Cloudinary transforms for GAS compatibility
+  const _rawAssignments = IMG_LIB.assignments || {};
+  const imgAssignments = {};
+  Object.keys(_rawAssignments).forEach(function(k) {
+    imgAssignments[k] = cloudinaryRawUrl(_rawAssignments[k]);
+  });
   const imgAssignJson = JSON.stringify(imgAssignments, null, 2);
 
   const slideLines = [...t2_S.slides].sort((a,b) => (a.slideNum||0) - (b.slideNum||0)).map((s, i) => {
@@ -8605,6 +8614,16 @@ function showImgSlotPopup(el, clientX, clientY) {
 }
 
 // Build a Cloudinary delivery URL cropped/filled to exact slot dimensions
+// Strip Cloudinary transform params from URL — return raw original for GAS export
+// e.g. .../upload/c_fill,g_auto,w_21,h_21/lb-deck/abc → .../upload/lb-deck/abc
+function cloudinaryRawUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  return url.replace(/(\/image\/upload\/)[a-z]_[^/]+(\/)/i, function(match, prefix, suffix) {
+    // Handle chained transforms: c_fill,g_auto,w_21,h_21
+    return prefix;
+  }).replace(/(\/image\/upload\/)(?:[a-z]_[^/]+,?)+\//i, '$1');
+}
+
 function cloudinaryFitUrl(publicId, w, h) {
   if (!publicId) return null;
   // Use c_fill to fill the exact box, g_auto for smart gravity
