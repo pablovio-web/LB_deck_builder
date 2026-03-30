@@ -3217,14 +3217,25 @@ function exportGAS(){
   out.push(`// ${'─'.repeat(60)}`);
   out.push(`// TEST RUNNER — run this to preview all templates in a new Slides file`);
   out.push(`// ${'─'.repeat(60)}`);
+  // Build image assets object from Tool 2's image library (if available)
+  const _testImgAssignments = (typeof IMG_LIB !== 'undefined' && IMG_LIB.assignments) ? IMG_LIB.assignments : {};
+  const _testImgJson = JSON.stringify(_testImgAssignments, null, 2);
+  out.push(`var TEST_IMAGE_URLS = ${_testImgJson};`);
+  out.push(``);
+  out.push(`function _buildTestAssets() {`);
+  out.push(`  var a = {};`);
+  out.push(`  Object.keys(TEST_IMAGE_URLS).forEach(function(k) { a[k] = TEST_IMAGE_URLS[k]; });`);
+  out.push(`  return a;`);
+  out.push(`}`);
+  out.push(``);
   out.push(`function test() {`);
   out.push(`  var pres = SlidesApp.create('LB Test — ' + new Date().toLocaleString());`);
-  out.push(`  // presId not needed`);
   out.push(`  Logger.log('Slide size: ' + pres.getPageWidth() + 'pt × ' + pres.getPageHeight() + 'pt');`);
+  out.push(`  var _assets = _buildTestAssets();`);
   out.push(`  var slides = pres.getSlides();`);
   out.push(`  slides[0].getShapes().forEach(function(s){ s.remove(); });`);
   out.push(`  Logger.log('Building slide ${S.templates[0]?.id||'01'}...');`);
-  out.push(`  buildSlide(slides[0], '${S.templates[0]?.id||'01'}', 1, 'Strategy', 'Test Deck', 'CLIENT', {});`);
+  out.push(`  buildSlide(slides[0], '${S.templates[0]?.id||'01'}', 1, 'Strategy', 'Test Deck', 'LB', _assets);`);
   for(let i=1;i<S.templates.length;i++){
     const tpl=S.templates[i];
     out.push(`  Logger.log('Building slide ${tpl.id}...');`);
@@ -3232,7 +3243,7 @@ function exportGAS(){
     out.push(`  pres.appendSlide(SlidesApp.PredefinedLayout.BLANK);`);
     out.push(`  var s${i} = pres.getSlides()[pres.getSlides().length - 1];`);
     out.push(`  s${i}.getShapes().forEach(function(sh){ sh.remove(); });`);
-    out.push(`  buildSlide(s${i}, '${tpl.id}', ${i+1}, 'Strategy', 'Test Deck', 'CLIENT', {});`);
+    out.push(`  buildSlide(s${i}, '${tpl.id}', ${i+1}, 'Strategy', 'Test Deck', 'LB', _assets);`);
   }
   out.push(`  var url = pres.getUrl();`);
   out.push(`  Logger.log('✅ Done: ' + url);`);
