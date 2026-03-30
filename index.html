@@ -3225,6 +3225,9 @@ function exportGAS(){
   out.push(`function _buildTestAssets() {`);
   out.push(`  var a = {};`);
   out.push(`  Object.keys(TEST_IMAGE_URLS).forEach(function(k) { a[k] = TEST_IMAGE_URLS[k]; });`);
+  out.push(`  // Map monogram keys: lb_logo_dark = white mono (on dark bg), lb_logo_light = black mono (on light bg)`);
+  out.push(`  if (a['lb_monogram_white']) { a['lb_logo_dark'] = a['lb_monogram_white']; a['lb_monogram'] = a['lb_monogram_white']; }`);
+  out.push(`  if (a['lb_monogram_black']) { a['lb_logo_light'] = a['lb_monogram_black']; }`);
   out.push(`  return a;`);
   out.push(`}`);
   out.push(``);
@@ -8159,10 +8162,12 @@ function generateGasScript() {
     const _monoUrl = _exportLight ? imgAssignments['lb_monogram_black'] : imgAssignments['lb_monogram_white'];
     const _monoLine = _monoUrl ? '    _assets.lb_monogram = ' + JSON.stringify(_monoUrl) + ';\n' : '';
     // Light/dark monogram variants for buildSlide's assets.lb_logo_light / assets.lb_logo_dark
+    // lb_logo_dark = white monogram (used ON dark backgrounds)
+    // lb_logo_light = black monogram (used ON light backgrounds)
     const _monoWhiteUrl = imgAssignments['lb_monogram_white'];
     const _monoBlackUrl = imgAssignments['lb_monogram_black'];
-    const _monoLightLine = _monoWhiteUrl ? '    _assets.lb_logo_light = ' + JSON.stringify(_monoWhiteUrl) + ';\n' : '';
-    const _monoDarkLine = _monoBlackUrl ? '    _assets.lb_logo_dark = ' + JSON.stringify(_monoBlackUrl) + ';\n' : '';
+    const _monoDarkLine = _monoWhiteUrl ? '    _assets.lb_logo_dark = ' + JSON.stringify(_monoWhiteUrl) + ';\n' : '';
+    const _monoLightLine = _monoBlackUrl ? '    _assets.lb_logo_light = ' + JSON.stringify(_monoBlackUrl) + ';\n' : '';
     // Triptych footer images (cover/closing slides: tpl 02, 49)
     const _lbWordmark = imgAssignments['lb_wordmark'];
     const _xFooter = imgAssignments['x_footer'];
