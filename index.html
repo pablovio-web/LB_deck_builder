@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LB Deck Builder</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" rel="stylesheet">
@@ -1452,6 +1453,69 @@ select option { background: var(--s2); }
   </style>
 </head>
 <body style="margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;">
+
+<!-- ══ AUTH GATE ══ -->
+<div id="authGate" style="position:fixed;inset:0;z-index:99999;background:#0a0a0a;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;font-family:system-ui,-apple-system,sans-serif;">
+  <div style="font-size:48px;">🍊</div>
+  <div style="font-size:24px;font-weight:700;color:#fff;letter-spacing:-.02em;">LB Deck Builder</div>
+  <div style="font-size:12px;color:#666;margin-bottom:12px;">Sign in with your LB Google account</div>
+  <div id="g_id_onload"
+       data-client_id="GOOGLE_CLIENT_ID_PLACEHOLDER"
+       data-callback="handleGoogleAuth"
+       data-auto_prompt="false">
+  </div>
+  <div class="g_id_signin"
+       data-type="standard"
+       data-theme="filled_black"
+       data-size="large"
+       data-text="sign_in_with"
+       data-shape="pill">
+  </div>
+  <div id="authError" style="display:none;color:#ef4444;font-size:11px;margin-top:8px;font-family:monospace;"></div>
+</div>
+
+<script>
+// ══ GOOGLE AUTH — ALLOWED EMAILS ══
+var LB_ALLOWED_EMAILS = [
+  'pablo@littlebuddy.io',
+  'adrian@littlebuddy.io',
+  'viopablo3@gmail.com'
+];
+
+// Check if already authenticated this session
+(function() {
+  var saved = sessionStorage.getItem('lb_auth_email');
+  if (saved && LB_ALLOWED_EMAILS.indexOf(saved) >= 0) {
+    // Already signed in this session — hide gate immediately
+    document.getElementById('authGate').style.display = 'none';
+  }
+})();
+
+function handleGoogleAuth(response) {
+  try {
+    // Decode the JWT payload (middle segment)
+    var payload = JSON.parse(atob(response.credential.split('.')[1]));
+    var email = (payload.email || '').toLowerCase().trim();
+
+    if (LB_ALLOWED_EMAILS.indexOf(email) >= 0) {
+      // Authorized — save to sessionStorage and hide gate
+      sessionStorage.setItem('lb_auth_email', email);
+      sessionStorage.setItem('lb_auth_name', payload.name || email);
+      document.getElementById('authGate').style.display = 'none';
+      console.log('[auth] Signed in as ' + email);
+    } else {
+      // Not allowed
+      var errEl = document.getElementById('authError');
+      errEl.textContent = '⚠ ' + email + ' is not authorized. Use your LB account.';
+      errEl.style.display = 'block';
+    }
+  } catch(e) {
+    var errEl = document.getElementById('authError');
+    errEl.textContent = '⚠ Auth failed: ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+</script>
 
 <!-- ══ TAB SWITCHER NAV ══ -->
 <nav id="tabNav" style="height:48px;flex-shrink:0;background:#111;z-index:9999;display:flex;align-items:center;gap:0;padding:0 16px;border-bottom:1px solid #333;">
