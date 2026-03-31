@@ -7286,10 +7286,19 @@ function renderWorkspaceCanvas(slide) {
 
   const filledEls = tpl.els.map(el => {
     if (el.t !== 'txt') return el;
-    // Merge isUpper from SLOT_CONSTRAINTS if not already set on the element
+    // Detect isUpper: first from SLOT_CONSTRAINTS, then from element's own placeholder text
     const constraint = constraintMap[el.lbl] || constraintMap[el.dynLabel] || null;
     if (constraint && el.isUpper === undefined) {
       el = Object.assign({}, el, { isUpper: constraint.isUpper });
+    }
+    // Fallback: detect from placeholder val if isUpper still not set
+    if (el.isUpper === undefined && el.val) {
+      const stripped = el.val.replace(/[^a-zA-Z]/g, '');
+      if (stripped.length > 0 && stripped === stripped.toUpperCase()) {
+        el = Object.assign({}, el, { isUpper: true });
+      } else if (stripped.length > 0) {
+        el = Object.assign({}, el, { isUpper: false });
+      }
     }
     // Skip slot matching for non-dynamic elements — they keep their static val
     if (el.dynamic === false) return el;
@@ -10249,6 +10258,28 @@ function switchTab(tab) {
     HARDCODED_LIBRARY.length = 0;
     S.templates.forEach(t => HARDCODED_LIBRARY.push(t));
     console.log('✅ Synced ' + S.templates.length + ' templates from Tool 1 → Tool 2');
+  }
+  // When switching TO Tool 2, auto-transfer Brief Builder outline if available
+  if (tab === 2 && typeof BB !== 'undefined' && BB.outline && BB.outline.trim()) {
+    var clientInput = document.getElementById('clientName');
+    var titleInput = document.getElementById('deckTitle');
+    var outlineInput = document.getElementById('outlineInput');
+    var transferred = false;
+    if (clientInput && BB.settings.client && !clientInput.value.trim()) {
+      clientInput.value = BB.settings.client;
+      transferred = true;
+    }
+    if (titleInput && BB.settings.title && !titleInput.value.trim()) {
+      titleInput.value = BB.settings.title;
+      transferred = true;
+    }
+    if (outlineInput && (!outlineInput.value.trim() || outlineInput.value.trim() !== BB.outline.trim())) {
+      outlineInput.value = BB.outline;
+      transferred = true;
+    }
+    if (transferred && typeof addChatMsg === 'function') {
+      addChatMsg('claude', '📝 Outline auto-imported from Brief Builder. Click **✦ Plan Deck** to generate slides.');
+    }
   }
   // Close menu drawer if open
   var drawer = document.getElementById('t2MenuDrawer');
