@@ -6780,6 +6780,8 @@ RULES:
 - Quote templates: sentence case only. Quote templates have 8 text lines (Quote Text L1 through L8) — you MUST fill ALL 8 lines. Write a full, flowing quote that uses the entire space. Never leave quote lines empty.
 - Write for a ${client} pitch deck titled "${title}"
 - TONE OF VOICE: Write like a real, clever human. Conversational, smart, slightly off-center. Casual but polished. Confident but not cocky. Short sentences. Plain language. No fluff. No em-dashes mid-sentence. No hype or exaggerated claims. Get to the point. Write like a person talks, not like a press release. No overused phrases. Don't ask questions then make a point. Use simple, clear words.
+- TODAY'S DATE: ${new Date().toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}. For timeline/next-steps templates (38, 39, 46), use REAL dates starting from today. Example: if today is March 31, use "3/31 Proposal submission", "4/7 Scope approval", "4/14 Kickoff", "4/21 First deliverable". Always use M/D format. Space dates 1 week apart. Never use generic "Week 1-2" — use actual calendar dates.
+- Template 49 (Thank You): ALWAYS use "THANK" for Headline L1 and "YOU!" for Headline L2. Never change these values.
 ${t2_S.currentSectionTitle ? `- SECTION TITLE: The section footer slot must be exactly "${t2_S.currentSectionTitle.substring(0,12).toUpperCase()}" — do not change this value` : ''}
 ${prevContext}${persistentMemory}${learnedPrefs}
 
@@ -7316,7 +7318,53 @@ function renderWorkspaceCanvas(slide) {
     'Page Number': String((slide._pageNum !== undefined ? slide._pageNum : (t2_S.slides ? t2_S.slides.indexOf(slide) + 1 : 1))),
   });
   const _origSlots = slide.slots;
-  slide = Object.assign({}, slide, { slots: _footerSlots });
+
+  // Auto-split: when AI returns a single group value (e.g. "Headline") but template has L1/L2/L3,
+  // split the text across the line elements based on their maxChars
+  const _expandedSlots = Object.assign({}, _footerSlots);
+  Object.keys(_footerSlots).forEach(function(slotKey) {
+    var val = _footerSlots[slotKey];
+    if (!val || typeof val !== 'string') return;
+    var slotLower = slotKey.trim().toLowerCase();
+    // Check if this is a group name that has L1/L2/L3 elements
+    var groupEls = tpl.els.filter(function(e) {
+      return e.t === 'txt' && e._lineGroup && e._lineGroup.toLowerCase() === slotLower && e._lineIndex;
+    });
+    if (groupEls.length < 2) return;
+    // Don't split if individual L1/L2 keys already exist
+    var hasIndividual = groupEls.some(function(e) {
+      return _footerSlots[e.lbl] || _footerSlots[e.dynLabel];
+    });
+    if (hasIndividual) return;
+    // Sort by _lineIndex and split text across them by maxChars
+    groupEls.sort(function(a, b) { return (a._lineIndex || 0) - (b._lineIndex || 0); });
+    var words = val.split(/\s+/);
+    var lineIdx = 0;
+    var currentLine = '';
+    groupEls.forEach(function(e, i) {
+      var maxC = e.maxChars || 40;
+      var lineWords = [];
+      while (words.length > 0) {
+        var test = currentLine ? currentLine + ' ' + words[0] : words[0];
+        if (test.length > maxC + 3 && currentLine && i < groupEls.length - 1) {
+          break; // Move to next line
+        }
+        currentLine = test;
+        lineWords.push(words.shift());
+      }
+      _expandedSlots[e.lbl] = currentLine;
+      currentLine = '';
+    });
+    // If there are leftover words, append to last line
+    if (words.length > 0 && groupEls.length > 0) {
+      var lastLbl = groupEls[groupEls.length - 1].lbl;
+      _expandedSlots[lastLbl] = (_expandedSlots[lastLbl] || '') + ' ' + words.join(' ');
+    }
+    // Remove the original group key
+    delete _expandedSlots[slotKey];
+  });
+
+  slide = Object.assign({}, slide, { slots: _expandedSlots });
 
   const filledEls = tpl.els.map(el => {
     if (el.t !== 'txt') return el;
@@ -8647,6 +8695,11 @@ function generateGasScript() {
     const label   = section || String(num);
     const tplDef  = HARDCODED_LIBRARY.find(t => t.id === (s.templateId || '01'));
 
+    // Force static content for tpl:49 (Thank You) — always "THANK" / "YOU!"
+    if (tpl === '49') {
+      s = Object.assign({}, s, { slots: Object.assign({}, s.slots, { 'Headline L1': 'THANK', 'Headline L2': 'YOU!' }) });
+    }
+
     // Serialise the slots object for inline GAS code — use JSON.stringify
     // for each value to handle apostrophes, quotes, newlines etc. safely
     // Enrich with footer values so GAS gets Client Name, Section Name, Page Number
@@ -8719,10 +8772,25 @@ function generateGasScript() {
     // Find image keys for this template and include URL fetch calls
     // For _footerAuto img elements, resolve the correct monogram key based on bg luminosity
     // (tplDef already defined above)
-    const _exportBgFill = (tplDef && tplDef.els.find(e => e.t === 'bg') || {}).fill || '#000000';
-    const _exportLight = (function(f) {
-      try { var r=parseInt(f.slice(1,3),16),g=parseInt(f.slice(3,5),16),b=parseInt(f.slice(5,7),16); return (r*299+g*587+b*114)/1000>128; } catch(e2){return false;}
-    })(_exportBgFill);
+    const _exportBgEl = tplDef && tplDef.els.find(e => e.t === 'bg');
+    const _exportBgFill = (_exportBgEl || {}).fill || '#000000';
+    // Determine if background is light by checking the dominant text color
+    // If most text elements are white (#ffffff), the background is dark
+    const _exportLight = (function() {
+      if (!tplDef) return false;
+      var txtEls = tplDef.els.filter(function(e) { return e.t === 'txt' && e.col; });
+      if (txtEls.length === 0) return false;
+      var lightCount = 0;
+      txtEls.forEach(function(e) {
+        try {
+          var c = e.col || '#ffffff';
+          var r = parseInt(c.slice(1,3),16), g = parseInt(c.slice(3,5),16), b = parseInt(c.slice(5,7),16);
+          if ((r*299+g*587+b*114)/1000 > 128) lightCount++;
+        } catch(ex) {}
+      });
+      // If majority of text is light-colored, background is dark → _exportLight = false
+      return lightCount < txtEls.length / 2;
+    })();
     const imgLines = tplDef ? tplDef.els
       .filter(el => el.t === 'img' && el.key)
       .map(el => {
@@ -8739,7 +8807,8 @@ function generateGasScript() {
     // Footer fix pass — directly set footer text by position region (bypasses findShape)
     // Covers Client Name (x≈31), Section Name (x≈580), and Page Number (x≈698)
     const _fClientName = (s.clientName || client || '').toUpperCase();
-    const _fSectionName = (s.section || s.sectionName || '').toUpperCase();
+    // Section name fallback: slide.section → slide.sectionName → "Section Name" slot → "Section Label" slot → plan section
+    const _fSectionName = (s.section || s.sectionName || (s.slots && (s.slots['Section Name'] || s.slots['Section Label'] || s.slots['Section Title'])) || '').toUpperCase();
     const _fPageNum = String(num);
     const _footerColor = _exportLight ? '#000000' : '#ffffff';
     const footerFix = (tpl !== '01' && tpl !== '02' && tpl !== '49') ? `
