@@ -5715,6 +5715,14 @@ async function bbSendMessage() {
   try { localStorage.setItem('bb_messages', JSON.stringify(BB.messages)); } catch(e) {}
   try { localStorage.setItem('bb_settings', JSON.stringify(BB.settings)); } catch(e) {}
 
+  // ── "Remember this" detection ──
+  var rememberNote = detectRememberTrigger(msg, BB.messages);
+  if (rememberNote) {
+    bbAddMsg('claude', '💾 Saved to memory: "' + rememberNote.substring(0, 60) + (rememberNote.length > 60 ? '…' : '') + '"');
+    await saveManualLearning(rememberNote, 'brief');
+    return;
+  }
+
   var btn = document.getElementById('bbSendBtn');
   btn.disabled = true;
   btn.textContent = '…';
@@ -6003,6 +6011,11 @@ function bbSendToTool2() {
     return;
   }
 
+  // Extract learnings from brief builder chat before switching (fire-and-forget)
+  if (BB.messages && BB.messages.length >= 4) {
+    extractSessionLearnings(BB.messages, 'brief');
+  }
+
   // Set Tool 2's form fields
   var clientInput = document.getElementById('clientName');
   var titleInput = document.getElementById('deckTitle');
@@ -6254,10 +6267,27 @@ function pickSuggestedTemplate(tplId, card) {
 
   var planItem = t2_S.plan[t2_S.current];
   if (planItem) {
+    // Track the template swap for learning
+    trackTemplateSwap(planItem.templateId, tplId, planItem.topic, planItem.section);
     planItem.templateId = tplId;
     addChatMsg('claude', 'Switching to template ' + tplId + '… regenerating content.');
     generateSlide(t2_S.current);
   }
+}
+
+// ── Template intent learning: track swaps to learn preferences ──
+function trackTemplateSwap(fromTpl, toTpl, topic, section) {
+  if (!t2_S._tplSwaps) t2_S._tplSwaps = [];
+  t2_S._tplSwaps.push({
+    from: fromTpl,
+    to: toTpl,
+    topic: (topic || '').substring(0, 60),
+    section: (section || '').substring(0, 30),
+    ts: Date.now()
+  });
+  // Also store in localStorage for persistence
+  try { localStorage.setItem('lb_tpl_swaps', JSON.stringify(t2_S._tplSwaps)); } catch(e) {}
+  console.log('[tpl-learn] Swap tracked: tpl ' + fromTpl + ' → ' + toTpl + ' for "' + topic + '"');
 }
 
 // ══════════════════════════════════════════════════════
@@ -6285,6 +6315,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const savedPlan   = localStorage.getItem('lb_plan_v4');
   if (savedSlides) try { t2_S.slides = JSON.parse(savedSlides); } catch(e) {}
   if (savedPlan)   try { t2_S.plan   = JSON.parse(savedPlan);   } catch(e) {}
+  // Load template swap history for intent learning
+  try { var swaps = localStorage.getItem('lb_tpl_swaps'); if (swaps) t2_S._tplSwaps = JSON.parse(swaps); } catch(e) {}
+  if (!t2_S._tplSwaps) t2_S._tplSwaps = [];
   if (t2_S.slides.length || t2_S.plan.length) restoreSession();
 });
 
@@ -6472,6 +6505,32 @@ async function planDeck() {
   // Build template summary for the prompt
   const tplSummary = Object.entries(TEMPLATE_DESCRIPTIONS).map(([id, desc]) => `${id}: ${desc}`).join('\n');
 
+  // Build template preference context from swap history
+  var tplPrefsContext = '';
+  var swaps = (t2_S._tplSwaps || []).slice(-30);
+  if (swaps.length > 0) {
+    // Aggregate: for each topic keyword, which templates were chosen
+    var prefMap = {};
+    swaps.forEach(function(s) {
+      var key = (s.topic || '').toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+      if (!key) return;
+      if (!prefMap[key]) prefMap[key] = {};
+      prefMap[key][s.to] = (prefMap[key][s.to] || 0) + 1;
+    });
+    var prefLines = [];
+    Object.entries(prefMap).forEach(function(entry) {
+      var topic = entry[0], tpls = entry[1];
+      var sorted = Object.entries(tpls).sort(function(a, b) { return b[1] - a[1]; });
+      var best = sorted[0];
+      if (best[1] >= 1) {
+        prefLines.push('- "' + topic + '" → prefer template ' + best[0] + ' (' + best[1] + 'x chosen)');
+      }
+    });
+    if (prefLines.length > 0) {
+      tplPrefsContext = '\n\nUSER TEMPLATE PREFERENCES (learned from past swaps — use these as the default choice when the topic matches):\n' + prefLines.join('\n') + '\n';
+    }
+  }
+
   const today = new Date();
   const todayStr = (today.getMonth()+1) + '/' + today.getDate();
   const w2 = new Date(today.getTime() + 7*86400000); const w2Str = (w2.getMonth()+1) + '/' + w2.getDate();
@@ -6534,7 +6593,7 @@ CONTENT RULES:
 - Match content complexity to template capacity — don't put 6 points on a 3-column template.
 
 IMPORTANT: In the "content" field, use \\n for line breaks — do NOT use actual newlines inside JSON strings. Escape all double quotes with \\".
-
+${tplPrefsContext}
 Respond ONLY with a JSON array, no markdown, no preamble:
 [{"slideNum":1,"topic":"Brief topic","section":"SECTION NAME","templateId":"01","rationale":"Why this template","content":"Heading: Example\\nBody: Line one.\\nLine two."}]`;
 
@@ -7820,6 +7879,23 @@ async function sendFeedback() {
 
   addChatMsg('user', msg);
   input.value = '';
+
+  // ── "Remember this" detection ──
+  var deckPrevMsgs = [];
+  // Build a flat message list from the chat DOM for context
+  var chatMsgEls = document.querySelectorAll('#chatMessages .t2-msg');
+  chatMsgEls.forEach(function(el) {
+    var role = el.classList.contains('t2-user') ? 'user' : 'assistant';
+    var bodyEl = el.querySelector('.t2-msg-body');
+    if (bodyEl) deckPrevMsgs.push({ role: role, text: bodyEl.textContent || '' });
+  });
+  var rememberNote = detectRememberTrigger(msg, deckPrevMsgs);
+  if (rememberNote) {
+    addChatMsg('claude', '💾 Saved to memory: "' + rememberNote.substring(0, 60) + (rememberNote.length > 60 ? '…' : '') + '"');
+    await saveManualLearning(rememberNote, 'deck');
+    return;
+  }
+
   document.getElementById('btnChatSend').disabled = true;
 
   // ── LINE BREAK: intercept "put X on a new line" / "break after X" / "new line before X" ──
@@ -8813,7 +8889,7 @@ function loadSession(e) {
 }
 
 
-function resetDeck() {
+async function resetDeck() {
   const hasWork = t2_S.slides.length > 0 || t2_S.plan.length > 0;
   if (hasWork) {
     const msg = t2_S.slides.length
@@ -8821,6 +8897,14 @@ function resetDeck() {
       : 'You have an unsaved plan. Start fresh anyway?';
     const choice = confirm(msg + '\n\nOK = Start New Deck (clears everything)\nCancel = Go back');
     if (!choice) return;
+  }
+
+  // Extract learnings from deck builder chat before clearing
+  var deckChatMsgs = (t2_S.feedbackHistory || []).map(function(m) {
+    return { role: m.role, text: m.content || m.text || '' };
+  });
+  if (deckChatMsgs.length >= 4) {
+    extractSessionLearnings(deckChatMsgs, 'deck'); // fire-and-forget
   }
 
   // Clear all state
@@ -10604,6 +10688,9 @@ function doSwapSmartFill(newTplId) {
   document.getElementById('swapConfirmPanel').style.display = 'none';
   if (!t2_S.currentSlide) return;
   const oldTplId = t2_S.currentSlide.templateId;
+  // Track swap for learning
+  var planItem = t2_S.plan[t2_S.current];
+  if (planItem) trackTemplateSwap(oldTplId, newTplId, planItem.topic, planItem.section);
   const compat = analyzeTemplateCompat(oldTplId, newTplId, t2_S.currentSlide.slots);
 
   // Apply mapped slots, clear the rest
@@ -10636,6 +10723,9 @@ async function doSwapAIRewrite(newTplId) {
   document.getElementById('swapConfirmPanel').style.display = 'none';
   if (!t2_S.currentSlide) return;
   const oldTplId = t2_S.currentSlide.templateId;
+  // Track swap for learning
+  var planItem = t2_S.plan[t2_S.current];
+  if (planItem) trackTemplateSwap(oldTplId, newTplId, planItem.topic, planItem.section);
 
   // Capture original copy as context before swapping
   const originalCopy = Object.entries(t2_S.currentSlide.slots)
@@ -10850,6 +10940,124 @@ async function cloudMemUpload(memoryObj) {
   }
 }
 
+// ── "Remember this" detection — returns instruction string or null ──
+function detectRememberTrigger(msg, previousMessages) {
+  if (!msg) return null;
+  var lower = msg.toLowerCase().trim();
+  // "remember:" followed by text
+  var colonMatch = lower.match(/^remember:\s*(.+)/);
+  if (colonMatch) return colonMatch[1].trim();
+  // Exact phrases — extract from the previous message
+  if (lower === 'remember this' || lower === 'keep this in memory' || lower === 'save this to memory') {
+    // Look for the most recent assistant message before this one
+    if (previousMessages && previousMessages.length >= 2) {
+      for (var i = previousMessages.length - 1; i >= 0; i--) {
+        var m = previousMessages[i];
+        if (m.role === 'assistant' || m.role === 'claude') {
+          return (m.text || m.content || '').substring(0, 200);
+        }
+      }
+    }
+    return null;
+  }
+  return null;
+}
+
+// ── Save a single learning string to cloud memory ──
+async function saveManualLearning(learning, source) {
+  if (!learning) return;
+  // Trim to max 80 chars
+  var note = learning.length > 80 ? learning.substring(0, 77) + '...' : learning;
+  if (source === 'brief') {
+    if (!BB.memory) BB.memory = { learnings: [], outlinePatterns: [] };
+    if (!BB.memory.learnings.includes(note)) {
+      BB.memory.learnings.push(note);
+      if (BB.memory.learnings.length > 50) BB.memory.learnings = BB.memory.learnings.slice(-50);
+    }
+  } else {
+    if (!t2_S.sessionLearnings) t2_S.sessionLearnings = [];
+    if (!t2_S.sessionLearnings.includes(note)) {
+      t2_S.sessionLearnings.push(note);
+      if (t2_S.sessionLearnings.length > 50) t2_S.sessionLearnings = t2_S.sessionLearnings.slice(-50);
+    }
+    if (t2_S.memory && t2_S.memory.learnings) {
+      if (!t2_S.memory.learnings.includes(note)) {
+        t2_S.memory.learnings.push(note);
+        if (t2_S.memory.learnings.length > 50) t2_S.memory.learnings = t2_S.memory.learnings.slice(-50);
+      }
+    }
+  }
+  await cloudMemAutoSave();
+}
+
+// ── Extract session learnings via Claude API at session boundaries ──
+async function extractSessionLearnings(chatMessages, source) {
+  if (!chatMessages || chatMessages.length < 4) {
+    console.log('[learnings] Skipped — not enough chat history (' + chatMessages.length + ' msgs)');
+    return;
+  }
+
+  // Build a condensed transcript (last 40 messages max)
+  var recent = chatMessages.slice(-40);
+  var transcript = recent.map(function(m) {
+    var role = m.role === 'user' ? 'User' : 'Assistant';
+    var text = (m.text || m.content || '').substring(0, 300);
+    return role + ': ' + text;
+  }).join('\n');
+
+  if (transcript.length < 100) {
+    console.log('[learnings] Skipped — transcript too short');
+    return;
+  }
+
+  try {
+    var systemPrompt = 'You extract reusable user preferences from chat transcripts. Return ONLY a JSON array of strings, e.g. ["note1","note2"]. Each note max 15 words. Only extract preferences that apply to ALL future decks, not one-time instructions. If nothing is reusable, return [].';
+    var userMsg = 'Extract 3-8 concise reusable preference notes from this ' + source + ' chat session. Only things that should apply to ALL future decks:\n\n' + transcript;
+
+    var resp = await callClaude(systemPrompt, [{ role: 'user', content: userMsg }], 1000);
+    var raw = resp.content?.[0]?.text || '';
+    var parsed = safeParseJSON(raw);
+    var newLearnings = Array.isArray(parsed) ? parsed : (parsed?.learnings || []);
+
+    if (!newLearnings.length) {
+      console.log('[learnings] Claude found no reusable preferences');
+      return;
+    }
+
+    // Filter: only strings, max 15 words, max 80 chars
+    newLearnings = newLearnings.filter(function(l) {
+      return typeof l === 'string' && l.trim().length > 5 && l.split(/\s+/).length <= 18 && l.length <= 80;
+    });
+
+    if (!newLearnings.length) return;
+
+    console.log('[learnings] Extracted ' + newLearnings.length + ' learnings from ' + source + ' session');
+
+    // Merge into the appropriate memory store
+    if (source === 'brief') {
+      if (!BB.memory) BB.memory = { learnings: [], outlinePatterns: [] };
+      var existing = BB.memory.learnings || [];
+      var merged = Array.from(new Set(existing.concat(newLearnings))).slice(0, 50);
+      BB.memory.learnings = merged;
+    } else {
+      if (!t2_S.sessionLearnings) t2_S.sessionLearnings = [];
+      var existingT2 = [].concat(t2_S.memory?.learnings || [], t2_S.sessionLearnings);
+      var mergedT2 = Array.from(new Set(existingT2.concat(newLearnings))).slice(0, 50);
+      t2_S.sessionLearnings = mergedT2.slice(0, 20);
+      if (t2_S.memory && t2_S.memory.learnings) {
+        t2_S.memory.learnings = mergedT2;
+      }
+    }
+
+    // Persist
+    await cloudMemAutoSave();
+    console.log('[learnings] Saved to cloud memory');
+
+  } catch (err) {
+    console.warn('[learnings] Extraction failed:', err.message);
+  }
+}
+
 // ── Build unified memory object from all tools ──
 function cloudMemBuildUnified() {
   // Tool 2 (Deck Builder) learnings
@@ -10891,6 +11099,9 @@ function cloudMemBuildUnified() {
     }
   }
 
+  // Template swap history (intent → template preferences)
+  var tplSwaps = (typeof t2_S !== 'undefined' && t2_S._tplSwaps) ? t2_S._tplSwaps.slice(-50) : [];
+
   return {
     version: 2,
     type: 'lb_unified_memory',
@@ -10900,6 +11111,7 @@ function cloudMemBuildUnified() {
     learnings: t2Learnings,
     templateNotes: t2TplNotes,
     imageAssignments: t2ImgAssignments,
+    templateSwaps: tplSwaps,
     // Brief Builder memory
     briefLearnings: bbLearnings,
     outlinePatterns: bbOutlinePatterns.slice(0, 10),
@@ -10939,6 +11151,17 @@ function cloudMemMerge(cloud, local) {
   // Merge brief settings (local wins)
   var mergedBriefSettings = Object.assign({}, cloud.briefSettings || {}, local.briefSettings || {});
 
+  // Merge template swaps (combine, dedupe by timestamp, keep last 50)
+  var mergedSwaps = [].concat(cloud.templateSwaps || [], local.templateSwaps || []);
+  // Dedupe by timestamp
+  var seen = {};
+  mergedSwaps = mergedSwaps.filter(function(s) {
+    if (!s.ts) return true;
+    if (seen[s.ts]) return false;
+    seen[s.ts] = true;
+    return true;
+  }).slice(-50);
+
   return {
     version: 2,
     type: 'lb_unified_memory',
@@ -10947,6 +11170,7 @@ function cloudMemMerge(cloud, local) {
     learnings: mergedLearnings,
     templateNotes: mergedTplNotes,
     imageAssignments: mergedImgs,
+    templateSwaps: mergedSwaps,
     briefLearnings: mergedBriefLearnings,
     outlinePatterns: mergedPatterns,
     briefSettings: mergedBriefSettings,
@@ -11079,6 +11303,22 @@ async function cloudMemManualSave() {
     indicator.textContent = '☁️ Saving…';
     indicator.style.color = '#F97316';
   }
+
+  // Extract learnings from both chats before saving (fire-and-forget, don't block save)
+  var extractPromises = [];
+  if (typeof BB !== 'undefined' && BB.messages && BB.messages.length >= 4) {
+    extractPromises.push(extractSessionLearnings(BB.messages, 'brief'));
+  }
+  if (typeof t2_S !== 'undefined' && t2_S.feedbackHistory && t2_S.feedbackHistory.length >= 4) {
+    var deckMsgs = t2_S.feedbackHistory.map(function(m) {
+      return { role: m.role, text: m.content || m.text || '' };
+    });
+    extractPromises.push(extractSessionLearnings(deckMsgs, 'deck'));
+  }
+  if (extractPromises.length) {
+    await Promise.allSettled(extractPromises);
+  }
+
   await cloudMemAutoSave();
 }
 
