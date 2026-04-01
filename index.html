@@ -6816,6 +6816,7 @@ RULES:
 - TONE OF VOICE: Write like a real, clever human. Conversational, smart, slightly off-center. Casual but polished. Confident but not cocky. Short sentences. Plain language. No fluff. No em-dashes mid-sentence. No hype or exaggerated claims. Get to the point. Write like a person talks, not like a press release. No overused phrases. Don't ask questions then make a point. Use simple, clear words.
 - TODAY'S DATE: ${new Date().toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}. For timeline/next-steps templates (38, 39, 46), use REAL dates starting from today. Example: if today is March 31, use "3/31 Proposal submission", "4/7 Scope approval", "4/14 Kickoff", "4/21 First deliverable". Always use M/D format. Space dates 1 week apart. Never use generic "Week 1-2" — use actual calendar dates.
 - Template 49 (Thank You): ALWAYS use "THANK" for Headline L1 and "YOU!" for Headline L2. Never change these values.
+- Templates 38/39 (Phase/Timeline): "Week X Heading" slots are SENTENCE CASE (e.g. "Week 1", "Phase 2"). "Week X Subheading" slots are ALL CAPS (e.g. "DISCOVERY", "SYNTHESIS & ANALYSIS"). Body text is sentence case. Respect maxChars strictly — these slots are tiny (10-20 chars). If your content is longer, rewrite it shorter to fit.
 ${t2_S.currentSectionTitle ? `- SECTION TITLE: The section footer slot must be exactly "${t2_S.currentSectionTitle.substring(0,12).toUpperCase()}" — do not change this value` : ''}
 ${prevContext}${persistentMemory}${learnedPrefs}
 
@@ -7466,7 +7467,8 @@ function renderWorkspaceCanvas(slide) {
   // Instead of rendering 7 tiny boxes, merge L1-L7 into one tall box with combined text
   // This makes the preview match how Google Slides renders paragraph text
   // Skip for static templates (47, 48, 49, 01) — they render as-is
-  const _noMergeTemplates = ['01', '02', '47', '48', '49'];
+  // Skip merge for: static templates + templates with shared _lineGroup bugs (38, 39)
+  const _noMergeTemplates = ['01', '02', '38', '39', '47', '48', '49'];
   const _skipMerge = _noMergeTemplates.includes(tpl.id);
   const mergedEls = [];
   const processedGroups = new Set();
