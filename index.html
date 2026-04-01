@@ -5981,7 +5981,7 @@ const TEMPLATE_DESCRIPTIONS = {"01":"Cover slide \u2014 no deck title. Use for o
 // ── Template categories for smart suggestions ──
 const TEMPLATE_CATEGORIES = {
   cover: ['01', '02'],
-  divider: ['03', '04', '05', '06'],
+  divider: ['03', '04', '05'],  // Only these 3 for section intros; 06 is special-purpose
   statement: ['07', '08', '09', '10'],
   quote: ['11', '12', '13', '14'],
   content: ['15', '16', '19', '20', '21'],  // primary content templates for suggestions
@@ -5996,7 +5996,7 @@ const TEMPLATE_CATEGORIES = {
   closing: ['49']
 };
 // Templates that should NEVER be auto-suggested (special purpose only)
-const NEVER_SUGGEST = ['22', '23', '40', '41', '42', '43', '47', '48'];
+const NEVER_SUGGEST = ['06', '22', '23', '40', '41', '42', '43', '47', '48'];
 
 function getCategoryForTemplate(tplId) {
   for (var cat in TEMPLATE_CATEGORIES) {
@@ -6014,6 +6014,9 @@ function getSuggestedTemplates(tplId, slideContent) {
 
   // For covers, closings, and special-purpose templates, don't suggest alternatives
   if (category === 'cover' || category === 'closing' || category === 'special') return [tplId];
+
+  // For dividers, always show exactly 03, 04, 05 — no other templates
+  if (category === 'divider') return ['03', '04', '05'];
 
   // Shuffle same-category to get variety instead of always the same order
   sameCategory.sort(function() { return Math.random() - 0.5; });
@@ -7604,6 +7607,49 @@ async function sendFeedback() {
   addChatMsg('user', msg);
   input.value = '';
   document.getElementById('btnChatSend').disabled = true;
+
+  // ── LINE BREAK: intercept "put X on a new line" / "break after X" / "new line before X" ──
+  if (t2_S.currentSlide) {
+    const breakMatch = msg.match(/(?:put|move|drop|place)\s+(?:the\s+)?(?:word\s+)?["']?(.+?)["']?\s+(?:on\s*(?:to\s*)?a\s+new\s+line|to\s+(?:a\s+)?new\s+line|onto\s+(?:a\s+)?new\s+line)/i)
+                     || msg.match(/(?:line\s*break|new\s*line|break)\s+(?:before|after)\s+(?:the\s+)?(?:word\s+)?["']?(.+?)["']?$/i)
+                     || msg.match(/(?:break|split)\s+(?:after|before)\s+(?:the\s+)?(?:word\s+)?["']?(.+?)["']?$/i);
+
+    if (breakMatch) {
+      const word = breakMatch[1].trim().replace(/['"]/g, '');
+      const slots = t2_S.currentSlide.slots;
+      const isBefore = /before/i.test(msg);
+      var found = false;
+
+      Object.keys(slots).forEach(function(k) {
+        if (found) return;
+        var val = slots[k];
+        if (!val || typeof val !== 'string') return;
+        // Case-insensitive search for the word
+        var idx = val.toLowerCase().indexOf(word.toLowerCase());
+        if (idx === -1) return;
+
+        var newVal;
+        if (isBefore) {
+          // Break BEFORE the word
+          newVal = val.substring(0, idx).trimEnd() + '\n' + val.substring(idx);
+        } else {
+          // Break AFTER the word
+          var endIdx = idx + word.length;
+          newVal = val.substring(0, endIdx).trimEnd() + '\n' + val.substring(endIdx).trimStart();
+        }
+        slots[k] = newVal;
+        found = true;
+      });
+
+      if (found) {
+        renderWorkspaceCanvas(t2_S.currentSlide);
+        localStorage.setItem('lb_slides_v4', JSON.stringify(t2_S.slides));
+        addChatMsg('claude', 'Added line break ' + (isBefore ? 'before' : 'after') + ' "' + word + '". Approve if it looks right.');
+        document.getElementById('btnChatSend').disabled = false;
+        return;
+      }
+    }
+  }
 
   // ── POSITION MOVE: intercept "move X up/down by Y px" / "gutter of Y px above X" ──
   if (t2_S.currentSlide) {
