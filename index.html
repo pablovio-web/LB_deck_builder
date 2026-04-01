@@ -5979,24 +5979,30 @@ function bbLoadMemory(e) {
 const TEMPLATE_DESCRIPTIONS = {"01":"Cover slide \u2014 no deck title. Use for opening slide only.","02":"Cover slide \u2014 with deck title split across 3 headline lines. Use for opening slide only.","03":"Section divider \u2014 single large chapter title + 2-line subtitle. Use to introduce a new major section.","04":"Section divider \u2014 2-line chapter title + chapter number + subtitle. Use for numbered sections.","05":"Section divider \u2014 2-line headline, no body. Bold visual break.","06":"Section divider \u2014 6-line large headline, no body. Use for dramatic single-idea statements.","07":"Content \u2014 6-line large headline + 2-line body subtext. Use for big bold statements with a supporting line.","08":"Content \u2014 single large headline + 1-line subtext. Use for a single powerful statement with minimal support.","09":"Content \u2014 5-line headline + body paragraph. Decorative micro-labels. Use for complex title-led content.","10":"Content \u2014 5-line headline + 2-line body. Clean large title with brief support.","11":"Quote slide \u2014 real attributed quote + image (black/green background). Sentence case only. Use ONLY for actual quoted speech from a named person.","12":"Quote slide \u2014 real attributed quote + image (yellow background). Sentence case only. Use ONLY for actual quoted speech from a named person.","13":"Quote slide \u2014 real attributed quote + image (white background). Sentence case only. Use ONLY for actual quoted speech from a named person.","14":"Quote slide \u2014 large centred quote, sentence case, NO image. Use for a single powerful quote. MUST include opening quote mark in the New Text slot (\u201c) and closing mark in the Closing Quote Mark slot (\u201e). The only non-caps template in the library.","15":"Content \u2014 4-line headline + 6-line body paragraph + image placeholder (black). Great alternative to 19 — use this to add visual variety. The image area will be filled manually later.","16":"Content \u2014 4-line headline + 6-line body paragraph + image placeholder (white). Great alternative to 20 — use this to add visual variety. The image area will be filled manually later.","17":"Content \u2014 3-line headline + body paragraph left + numbered list of 4 items right (black). Use when you have a heading, paragraph AND 4 distinct list points.","18":"Content \u2014 3-line headline + body paragraph left + numbered list of 4 items right (white). Same as 17 but light background.","19":"Content \u2014 3-line headline + 7-line body paragraph, no image (black). Use for a heading with a full paragraph of body copy. BEST FOR: single ideas with explanation.","20":"Content \u2014 3-line headline + 7-line body paragraph, no image (white). Same as 19 but white background.","21":"Content \u2014 3-line headline + 7-line body paragraph, no image (green accent). Same as 19 but green.","22":"Content \u2014 3-line headline + 3 image placeholders + 3 columns of body text. Use for 3-column image + text layouts.","23":"Content \u2014 3-line headline + 3 image placeholders + 3 card items with title + body. Use for 3-column card layouts.","24":"Content \u2014 3-line headline + 6 items with title + body (no images). Use when presenting 6 distinct points or features.","25":"Content \u2014 3-line headline + 6 columns with title + body (no images). Use for 6-column grid layouts.","26":"Content \u2014 3-line headline + 3 big numbers with label + body (black). Use for statistics or 3 key metrics.","27":"Content \u2014 3-line headline + 3 big numbers with label + body (white). Same as 26 but white background.","28":"Content \u2014 agenda slide with AGENDA title + 9 agenda items list. Use for session agendas.","29":"Content \u2014 agenda slide with 9 items list (alternate layout). Use for session agendas.","30":"Content \u2014 section navigator with active item highlighted. Use for showing where we are in a presentation.","31":"Content \u2014 section navigator with body description. Use for section intros with context.","32":"Content \u2014 timer/timing slide with hours/minutes + 3 columns of labels and body. Use for workshop timing.","33":"Content \u2014 two large stats (50% + 96%) with labels and body. Use for two key statistics.","34":"Content \u2014 single large statistic with body. Use for one key metric.","35":"Content \u2014 timer + 3 columns of labels and body (green). Same as 32 but green background.","36":"Content \u2014 two stats with labels (yellow background). Use for two key statistics.","37":"Content \u2014 single stat with body (red background). Use for one key metric.","38":"Content \u2014 4-week timeline with heading, subheading, and body per week. Use for 4-week plans or roadmaps.","39":"Content \u2014 3-column layout with 3 numbers, 3 headings, and body per column. Use for 3 parallel concepts.","40":"Case study ONLY \u2014 requires real client name, real project title, real services, and a case study image. Do NOT use for general content.","41":"Case study ONLY \u2014 requires real client name, real project title, real services, and a case study image. Do NOT use for general content.","42":"Case study ONLY \u2014 requires real client name, real project title, real services, and a case study image. Do NOT use for general content.","43":"Case study ONLY \u2014 requires real client name, real project title, real services, and a case study image. Do NOT use for general content.","44":"Content \u2014 3-tier pricing (gold/silver/bronze) with labels + body + price (black background). Use for pricing.","45":"Content \u2014 3-tier pricing (gold/silver/bronze) with labels + body + price (white background). Use for pricing.","46":"Content \u2014 timeline/schedule with 4 dates and items. Use for project timelines or next steps with dates.","47":"Content \u2014 text-only paragraph continuation slide. Use when body copy overflows from another slide.","48":"Content \u2014 people/team grid with 8 names and titles. Use for team introductions.","49":"End/thank you slide \u2014 2-line headline. Use as the final slide."};
 
 // ── Template categories for smart suggestions ──
+// ── TEMPLATE CATEGORIES — follows the 19 rules for template selection ──
 const TEMPLATE_CATEGORIES = {
-  cover: ['01', '02'],
-  divider: ['03', '04', '05'],  // Only these 3 for section intros; 06 is special-purpose
-  statement: ['07', '08', '09', '10'],
-  quote: ['11', '12', '13', '14'],
-  content: ['15', '16', '19', '20', '21'],  // primary content templates for suggestions
-  content_list: ['17', '18', '24', '25'],
-  columns_numbers: ['26', '27', '39'],
-  agenda: ['28', '29', '30', '31'],
-  stats: ['32', '33', '34', '35', '36', '37'],
-  timeline: ['38', '46'],
-  case_study: ['40', '41', '42', '43'],
-  pricing: ['44', '45'],
-  special: ['22', '23', '47', '48'],  // special-purpose — never auto-suggest
-  closing: ['49']
+  cover_a: ['01'],                                  // Rule 1: Always slide 1 — LB intro
+  cover_b: ['02'],                                  // Rule 2: Always slide 2 — deck title
+  divider: ['03', '04', '05'],                      // Rule 3: Section/chapter intros (pick randomly)
+  statement: ['06', '07', '08', '10'],              // Rule 4: Statement slides with heading + small subtext
+  quote: ['11', '12', '13', '14'],                  // Rule 5: Pull quotes (no repeats in same deck)
+  content: ['15', '16', '19', '20', '21'],          // Rule 6: Pure content/copy slides (never back-to-back same)
+  content_list: ['17', '18', '22', '23', '26', '27'], // Rule 7: Content with 3-4 list points
+  content_grid: ['24', '25'],                       // Rule 8: Content with 6-8 points
+  agenda: ['28', '29', '30', '31'],                 // Rule 9: Agenda slide = always 3rd slide
+  stats_3: ['32', '35'],                            // Rule 10: 3 data points
+  stats_2: ['33', '36'],                            // Rule 11: 2 data points
+  stats_1: ['34', '37'],                            // Rule 12: 1 data point
+  phases: ['38', '39'],                             // Rule 13: 4-8 phase timelines (same tpl for continuation)
+  case_study: ['40', '41', '42', '43'],             // Rule 14: Past client work / case studies (no repeats)
+  pricing: ['44', '45'],                            // Rule 15: Cost/pricing only — 3 tiers (gold/silver/bronze)
+  next_steps: ['46'],                               // Rule 16: Second-to-last slide — 4 weekly milestones
+  about_us: ['47'],                                 // Rule 17: Pablo & Adrian intro — always 4th slide, static
+  team: ['48'],                                     // Rule 19: Additional team members
+  closing: ['49']                                   // Rule 18: Thank You — always last slide, static
 };
-// Templates that should NEVER be auto-suggested (special purpose only)
-const NEVER_SUGGEST = ['06', '22', '23', '40', '41', '42', '43', '47', '48'];
+// Templates that should NEVER be auto-suggested for general content
+const NEVER_SUGGEST = ['01', '02', '09', '40', '41', '42', '43', '46', '47', '48', '49'];
 
 function getCategoryForTemplate(tplId) {
   for (var cat in TEMPLATE_CATEGORIES) {
@@ -6007,45 +6013,27 @@ function getCategoryForTemplate(tplId) {
 
 function getSuggestedTemplates(tplId, slideContent) {
   var category = getCategoryForTemplate(tplId);
-  // Filter out NEVER_SUGGEST templates from same category
-  var sameCategory = (TEMPLATE_CATEGORIES[category] || []).filter(function(id) {
-    return id !== tplId && NEVER_SUGGEST.indexOf(id) === -1;
+
+  // Fixed slides — no alternatives (Rules 1, 2, 9, 16, 17, 18)
+  var fixedCategories = ['cover_a', 'cover_b', 'next_steps', 'about_us', 'closing'];
+  if (fixedCategories.indexOf(category) !== -1) return [tplId];
+
+  // Get all templates in the same category (excluding current)
+  var pool = (TEMPLATE_CATEGORIES[category] || []).filter(function(id) {
+    return id !== tplId;
   });
 
-  // For covers, closings, and special-purpose templates, don't suggest alternatives
-  if (category === 'cover' || category === 'closing' || category === 'special') return [tplId];
+  // Shuffle for variety
+  pool.sort(function() { return Math.random() - 0.5; });
 
-  // For dividers, always show exactly 03, 04, 05 — no other templates
-  if (category === 'divider') return ['03', '04', '05'];
+  // For phases (Rule 13): only show the 2 phase templates
+  if (category === 'phases') return ['38', '39'];
 
-  // Shuffle same-category to get variety instead of always the same order
-  sameCategory.sort(function() { return Math.random() - 0.5; });
+  // For categories with exactly 2-3 options, show all
+  if (pool.length <= 2) return [tplId].concat(pool);
 
-  // Pick up to 2 alternatives from the same category
-  var alts = sameCategory.slice(0, 2);
-
-  // If fewer than 2 from same category, grab from related categories
-  if (alts.length < 2) {
-    var related = {
-      divider: ['statement'], statement: ['divider', 'content'],
-      quote: ['statement'], content: ['content_list', 'statement'],
-      content_list: ['content', 'columns_numbers'],
-      columns_numbers: ['content_list', 'stats'], stats: ['columns_numbers'],
-      timeline: ['columns_numbers'], pricing: ['columns_numbers'],
-      agenda: ['timeline']
-    };
-    var relCats = related[category] || ['content'];
-    for (var i = 0; i < relCats.length && alts.length < 2; i++) {
-      var extras = (TEMPLATE_CATEGORIES[relCats[i]] || []).filter(function(id) {
-        return id !== tplId && alts.indexOf(id) === -1 && NEVER_SUGGEST.indexOf(id) === -1;
-      });
-      // Shuffle related too
-      extras.sort(function() { return Math.random() - 0.5; });
-      if (extras.length) alts.push(extras[0]);
-    }
-  }
-
-  return [tplId].concat(alts.slice(0, 2));
+  // For larger pools, pick 2 random alternatives
+  return [tplId].concat(pool.slice(0, 2));
 }
 
 function renderTemplateSuggestions(primaryTplId) {
@@ -6311,20 +6299,66 @@ async function planDeck() {
   // Build template summary for the prompt
   const tplSummary = Object.entries(TEMPLATE_DESCRIPTIONS).map(([id, desc]) => `${id}: ${desc}`).join('\n');
 
-  const system = `You are an expert pitch deck architect. Given a pitch outline, you create a precise slide-by-slide plan mapped to specific templates from a library.
+  const today = new Date();
+  const todayStr = (today.getMonth()+1) + '/' + today.getDate();
+  const w2 = new Date(today.getTime() + 7*86400000); const w2Str = (w2.getMonth()+1) + '/' + w2.getDate();
+  const w3 = new Date(today.getTime() + 14*86400000); const w3Str = (w3.getMonth()+1) + '/' + w3.getDate();
+  const w4 = new Date(today.getTime() + 21*86400000); const w4Str = (w4.getMonth()+1) + '/' + w4.getDate();
+
+  const system = `You are an expert pitch deck architect for Little Buddy (LB), a creative consultancy. Given a pitch outline, you create a precise slide-by-slide plan mapped to specific templates.
 
 Template library:
 ${tplSummary}
 
-RULES:
-- Always start with template 01 or 02 (cover)
-- Always end with template 49 (thank you)
-- Section dividers (03-06) must appear before the first content slide of each section
-- Case study templates (40-43) ONLY if real case study data is provided
-- Quote templates (11-14) ONLY for actual quoted speech
-- Match content complexity to template capacity
-- CRITICAL: For each slide, include ALL copy/content the user provided in the outline in the "content" field. Copy it VERBATIM — headings, body text, list items, everything. Do NOT paraphrase, summarize, or invent new copy. If the outline specifies exact text for a slide, preserve it exactly.
-- CRITICAL: When a timeline, phase, or process needs to split across multiple slides (e.g. 8 weeks split into 2 slides of 4), ALWAYS use the SAME template ID for both slides. Do NOT mix templates 38 and 39 — pick one and use it consistently across the split. This ensures visual uniformity.
+══════════════════════════════════════
+MANDATORY DECK STRUCTURE RULES:
+══════════════════════════════════════
+
+RULE 1 — SLIDE 1: Always template "01" (Cover A). Introduces Little Buddy. Static, no dynamic text.
+RULE 2 — SLIDE 2: Always template "02" (Cover B). Shows the deck title. Heading slots get the deck title.
+RULE 9 — SLIDE 3: Always an AGENDA slide. Read the outline, count section names, list them. Pick ONE of: 28, 29, 30, 31.
+RULE 17 — SLIDE 4: Always template "47" (About Us). Introduces Pablo & Adrian. Static, render as-is. NEVER use 47 for any other content.
+RULE 18 — LAST SLIDE: Always template "49" (Thank You). Static, render as-is. Always "THANK" / "YOU!".
+RULE 16 — SECOND-TO-LAST SLIDE: Always template "46" (Next Steps). 4 weekly milestones starting from today:
+  Line 1: "${todayStr} — Proposal submitted"
+  Line 2: "${w2Str} — Proposal decision"
+  Line 3: "${w3Str} — Outlining SOW"
+  Line 4: "${w4Str} — Engagement start"
+
+══════════════════════════════════════
+CONTENT TEMPLATE SELECTION RULES:
+══════════════════════════════════════
+
+RULE 3 — SECTION DIVIDERS: When introducing a new chapter/section, pick ONE randomly from: 03, 04, 05. Rotate — never use the same divider template twice in a row.
+
+RULE 4 — STATEMENT SLIDES (heading + small subtext, setting up the next slide): Pick ONE from: 06, 07, 08, 10. Rotate randomly — no repeats in same deck.
+
+RULE 5 — QUOTE SLIDES (actual quoted speech from a person): Pick ONE from: 11, 12, 13, 14. Never use the same quote template twice in the same deck.
+
+RULE 6 — CONTENT/COPY SLIDES (explaining a section, phase, or idea): Pick ONE from: 15, 16, 19, 20, 21. NEVER use the same template back-to-back. Maximize variety across the deck.
+
+RULE 7 — CONTENT WITH 3-4 LIST POINTS: Pick ONE from: 17, 18, 22, 23, 26, 27. Rotate randomly. Exception: if splitting 6 points across 2 slides (3+3), use the SAME template for both.
+
+RULE 8 — CONTENT WITH 6-8 POINTS on ONE slide: Use 24 or 25.
+
+RULE 10 — 3 DATA POINTS proving a claim: Use 32 or 35.
+RULE 11 — 2 DATA POINTS proving a claim: Use 33 or 36.
+RULE 12 — 1 DATA POINT proving a claim: Use 34 or 37.
+
+RULE 13 — PHASE/TIMELINE (4-8 phases): Use 38 or 39. Pick ONE style and use it for ALL phase slides. If 6 phases: slide A shows phases 1-4, slide B shows phases 5-6 — SAME template ID for both. Never mix 38 and 39.
+
+RULE 14 — CASE STUDIES (past client work): Use 40, 41, 42, 43. Only if real case study data is provided. Never repeat the same template back-to-back.
+
+RULE 15 — PRICING/COST: Use 44 or 45. Only for showing engagement cost. 3 tiers: Gold (full), Silver (reduced), Bronze (advisory).
+
+RULE 19 — TEAM MEMBERS (beyond Pablo & Adrian): Use 48. Follow with a content slide (Rule 6) for more detail on each person. Put under a "The Team" section.
+
+══════════════════════════════════════
+CONTENT RULES:
+══════════════════════════════════════
+- CRITICAL: For each slide, include ALL copy/content the user provided in the outline in the "content" field. Copy it VERBATIM — headings, body text, list items, everything. Do NOT paraphrase, summarize, or invent new copy.
+- CRITICAL: When a phase/timeline splits across slides, use the SAME template ID for both. This ensures visual uniformity.
+- Match content complexity to template capacity — don't put 6 points on a 3-column template.
 
 IMPORTANT: In the "content" field, use \\n for line breaks — do NOT use actual newlines inside JSON strings. Escape all double quotes with \\".
 
@@ -6340,10 +6374,10 @@ Respond ONLY with a JSON array, no markdown, no preamble:
     const clean = raw.replace(/```json|```/g, '').trim();
     const plan = safeParseJSON(clean);
 
-    // ── Auto-insert AGENDA slide after cover ──
-    // Collect section divider titles from the plan
+    // ── Auto-insert AGENDA slide after cover (if AI didn't include one) ──
+    const hasAgenda = plan.some(p => ['28','29','30','31'].includes(p.templateId));
     const sectionDividers = plan.filter(p => ['03','04','05'].includes(p.templateId));
-    if (sectionDividers.length > 0) {
+    if (sectionDividers.length > 0 && !hasAgenda) {
       // Find insert point: after last cover slide (tpl 01 or 02)
       let insertIdx = 0;
       for (let i = 0; i < plan.length; i++) {
