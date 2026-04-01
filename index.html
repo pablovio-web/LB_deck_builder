@@ -1882,10 +1882,11 @@ function handleGoogleAuth(response) {
         <div style="height:1px;background:var(--b1);margin:4px 0;"></div>
 
         <div class="bb-section">
-          <div class="bb-label">Memory</div>
+          <div class="bb-label">Outline Patterns & Settings</div>
+          <div style="font-size:8px;color:var(--txd);margin-bottom:4px;">Saves section structures, pitch type, tone — not chat history</div>
           <div style="display:flex;gap:6px;">
-            <button class="btn-sm" onclick="document.getElementById('bbMemoryInput').click()" style="font-size:9px;flex:1;">🧠 Load</button>
-            <button class="btn-sm" onclick="bbSaveMemory()" style="font-size:9px;flex:1;">💾 Save</button>
+            <button class="btn-sm" onclick="document.getElementById('bbMemoryInput').click()" style="font-size:9px;flex:1;">📥 Load</button>
+            <button class="btn-sm" onclick="bbSaveMemory()" style="font-size:9px;flex:1;">📤 Save</button>
             <input type="file" id="bbMemoryInput" accept=".json" style="display:none" onchange="bbLoadMemory(event)">
           </div>
         </div>
