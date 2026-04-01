@@ -10476,25 +10476,32 @@ const CLOUD_MEM = {
 
 // ── Fetch memory from Cloudinary on page load ──
 async function cloudMemFetch() {
-  const url = 'https://res.cloudinary.com/' + CLOUD_MEM.cloudName + '/raw/upload/' + CLOUD_MEM.publicIds.unified + '.json';
-  try {
-    // Add cache-buster to avoid stale CDN cache
-    const resp = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
-    if (!resp.ok) {
-      if (resp.status === 404) {
-        console.log('[cloud-mem] No cloud memory found — starting fresh.');
-        return null;
+  // Try localStorage URL first (from latest upload), fall back to fixed public_id URL
+  const storedUrl = (function() { try { return localStorage.getItem('lb_cloud_mem_url'); } catch(e) { return null; } })();
+  const fixedUrl = 'https://res.cloudinary.com/' + CLOUD_MEM.cloudName + '/raw/upload/' + CLOUD_MEM.publicIds.unified + '.json';
+  const urls = storedUrl ? [storedUrl, fixedUrl] : [fixedUrl];
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' });
+      if (!resp.ok) {
+        if (resp.status === 404) {
+          console.log('[cloud-mem] URL not found, trying next:', url.substring(0, 80));
+          continue; // try next URL
+        }
+        throw new Error('HTTP ' + resp.status);
       }
-      throw new Error('HTTP ' + resp.status);
+      const mem = await resp.json();
+      CLOUD_MEM.lastFetched = new Date().toISOString();
+      console.log('[cloud-mem] Fetched cloud memory from:', url.substring(0, 80));
+      console.log('[cloud-mem] Content:', (mem.learnings || []).length, 'learnings,', (mem.briefLearnings || []).length, 'brief learnings');
+      return mem;
+    } catch (err) {
+      console.warn('[cloud-mem] Fetch failed for URL:', url.substring(0, 80), err.message);
+      continue; // try next URL
     }
-    const mem = await resp.json();
-    CLOUD_MEM.lastFetched = new Date().toISOString();
-    console.log('[cloud-mem] Fetched cloud memory:', (mem.learnings || []).length, 'learnings,', (mem.briefLearnings || []).length, 'brief learnings');
-    return mem;
-  } catch (err) {
-    console.warn('[cloud-mem] Fetch failed:', err.message);
-    return null;
   }
+  console.log('[cloud-mem] No cloud memory found — starting fresh.');
+  return null;
 }
 
 // ── Upload memory to Cloudinary (overwrites previous) ──
@@ -10510,10 +10517,10 @@ async function cloudMemUpload(memoryObj) {
     fd.append('file', file);
     fd.append('upload_preset', CLOUD_MEM.uploadPreset);
     fd.append('folder', CLOUD_MEM.folder);
-    fd.append('public_id', 'lb_unified_memory');
     fd.append('resource_type', 'raw');
-    fd.append('overwrite', 'true');
-    fd.append('invalidate', 'true'); // bust CDN cache
+    fd.append('use_filename', 'true');
+    fd.append('unique_filename', 'true');
+    fd.append('tags', 'lb_unified_memory');
 
     const resp = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD_MEM.cloudName + '/raw/upload', {
       method: 'POST',
@@ -10527,6 +10534,10 @@ async function cloudMemUpload(memoryObj) {
 
     const result = await resp.json();
     CLOUD_MEM.lastSaved = new Date().toISOString();
+    // Store the latest upload URL so cloudMemFetch can find it
+    if (result.secure_url) {
+      try { localStorage.setItem('lb_cloud_mem_url', result.secure_url); } catch(e) {}
+    }
     console.log('[cloud-mem] Saved to cloud:', result.secure_url);
     return true;
   } catch (err) {
