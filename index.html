@@ -1871,10 +1871,10 @@ function handleGoogleAuth(response) {
 
         <div class="bb-section">
           <div class="bb-label">Upload Files</div>
-          <label class="bb-drop" id="bbDropZone">
+          <label class="bb-drop" id="bbDropZone" ondragover="event.preventDefault();this.style.borderColor='var(--acc)';this.style.background='rgba(249,115,22,0.08)'" ondragleave="this.style.borderColor='var(--b2)';this.style.background=''" ondrop="event.preventDefault();this.style.borderColor='var(--b2)';this.style.background='';bbHandleDropFiles(event.dataTransfer.files)">
             <span style="font-size:16px">📎</span>
             <span style="font-size:10px;color:var(--txd)">Drop transcripts, PDFs, docs…</span>
-            <input type="file" id="bbFileInput" accept=".txt,.pdf,.docx,.vtt,.md" style="display:none" onchange="bbHandleFileUpload(event)" multiple>
+            <input type="file" id="bbFileInput" accept=".txt,.pdf,.docx,.vtt,.md,.png,.jpg,.jpeg,.gif,.webp" style="display:none" onchange="bbHandleFileUpload(event)" multiple>
           </label>
           <div class="bb-file-list" id="bbFileList"></div>
         </div>
@@ -1899,8 +1899,13 @@ function handleGoogleAuth(response) {
       <div class="bb-messages" id="bbMessages">
         <div class="bb-msg bb-claude">👋 Hi! I'm your pitch strategist. Tell me about the pitch you're building — who's the client, what's the objective, and what materials do you have? I'll help you shape it into a structured outline.</div>
       </div>
-      <div class="bb-input-row">
-        <textarea id="bbChatInput" placeholder="Describe your pitch, paste notes, or ask me to structure your ideas… (⌘↵ to send)" rows="2" onkeydown="bbChatKeydown(event)"></textarea>
+      <div id="bbChatAttachments" style="display:none;padding:4px 12px;background:var(--s1);border-top:1px solid var(--b1);font-size:10px;color:var(--txf);display:flex;gap:6px;flex-wrap:wrap;"></div>
+      <div class="bb-input-row" ondragover="event.preventDefault();this.style.borderColor='var(--acc)'" ondragleave="this.style.borderColor='var(--b1)'" ondrop="event.preventDefault();this.style.borderColor='var(--b1)';bbHandleChatDrop(event.dataTransfer)">
+        <label style="cursor:pointer;font-size:16px;padding:4px 2px 4px 6px;color:var(--txf);flex-shrink:0;display:flex;align-items:center;" title="Attach file or image">
+          <span>+</span>
+          <input type="file" accept=".txt,.pdf,.docx,.vtt,.md,.png,.jpg,.jpeg,.gif,.webp" style="display:none" onchange="bbHandleChatFileInput(event)" multiple>
+        </label>
+        <textarea id="bbChatInput" placeholder="Describe your pitch, paste notes, or ask me to structure your ideas… (⌘↵ to send)" rows="2" onkeydown="bbChatKeydown(event)" onpaste="bbHandleChatPaste(event)"></textarea>
         <button id="bbSendBtn" onclick="bbSendMessage()">Send</button>
       </div>
     </div>
@@ -5674,10 +5679,40 @@ function bbChatKeydown(e) {
 async function bbSendMessage() {
   var input = document.getElementById('bbChatInput');
   var msg = input.value.trim();
-  if (!msg) return;
+  if (!msg && !bbPendingAttachments.length) return;
   input.value = '';
 
-  bbAddMsg('user', msg);
+  // Capture attachments before clearing
+  var attachments = bbPendingAttachments.slice();
+  bbPendingAttachments = [];
+  bbRenderAttachments();
+
+  // Show attachment chips in the chat message
+  var displayMsg = msg;
+  if (attachments.length) {
+    var attNames = attachments.map(function(a) { return (a.isImage ? '🖼 ' : '📄 ') + a.name; }).join(', ');
+    displayMsg = (msg ? msg + '\n' : '') + '[Attached: ' + attNames + ']';
+  }
+  // Store attachments with the message for API multimodal support
+  BB.messages.push({ role: 'user', text: displayMsg, attachments: attachments });
+  // Render in chat UI
+  var msgs = document.getElementById('bbMessages') || document.getElementById('bbChatMessages');
+  if (msgs) {
+    var div = document.createElement('div');
+    div.className = 'bb-msg bb-msg-user';
+    var html = displayMsg.replace(/\n/g, '<br>');
+    // Add image thumbnails
+    attachments.forEach(function(att) {
+      if (att.isImage && att.data) {
+        html += '<br><img src="' + att.data + '" style="max-width:200px;max-height:150px;border-radius:4px;margin-top:4px;">';
+      }
+    });
+    div.innerHTML = html;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  try { localStorage.setItem('bb_messages', JSON.stringify(BB.messages)); } catch(e) {}
+  try { localStorage.setItem('bb_settings', JSON.stringify(BB.settings)); } catch(e) {}
 
   var btn = document.getElementById('bbSendBtn');
   btn.disabled = true;
@@ -5745,12 +5780,27 @@ async function bbSendMessage() {
     'IMPORTANT: Every time you update the outline, include the FULL updated outline in the code block — not just changes.\n' +
     'The outline preview panel on the right auto-extracts content between ```OUTLINE and ``` markers.';
 
-  // Build messages for API
+  // Build messages for API — include image attachments as multimodal content
   var apiMessages = BB.messages.slice(-20).map(function(m) {
+    if (m.role === 'user' && m.attachments && m.attachments.length) {
+      // Multimodal message: text + images
+      var content = [];
+      m.attachments.forEach(function(att) {
+        if (att.isImage && att.data) {
+          // Extract base64 data and media type from data URL
+          var match = att.data.match(/^data:(image\/[^;]+);base64,(.+)/);
+          if (match) {
+            content.push({ type: 'image', source: { type: 'base64', media_type: match[1], data: match[2] } });
+          }
+        } else if (!att.isImage && att.data) {
+          content.push({ type: 'text', text: '[File: ' + att.name + ']\n' + att.data.substring(0, 8000) });
+        }
+      });
+      if (m.text) content.push({ type: 'text', text: m.text });
+      return { role: 'user', content: content };
+    }
     return { role: m.role === 'user' ? 'user' : 'assistant', content: m.text };
   });
-  // Replace last message with current (since we already pushed it)
-  // Actually, the messages array already has the latest user message
 
   try {
     var data = await callClaude(system, apiMessages, 4000);
@@ -5784,6 +5834,128 @@ function bbUpdateOutline(text) {
   }
   // Save to localStorage
   try { localStorage.setItem('bb_outline', text || ''); } catch(e) {}
+}
+
+// ── Pending chat attachments (images/files attached via + button, drag, or paste) ──
+var bbPendingAttachments = []; // [{name, type, data (base64 or text), isImage}]
+
+function bbHandleDropFiles(files) {
+  // Called from the Upload Files drop zone
+  Array.from(files).forEach(function(f) { bbProcessUploadFile(f); });
+}
+
+function bbHandleChatDrop(dt) {
+  // Called from the chat input drop zone
+  var files = dt.files;
+  if (files && files.length) {
+    Array.from(files).forEach(function(f) { bbAttachFileToChat(f); });
+  }
+}
+
+function bbHandleChatFileInput(e) {
+  // Called from the + button file input
+  var files = e.target.files;
+  if (!files || !files.length) return;
+  Array.from(files).forEach(function(f) { bbAttachFileToChat(f); });
+  e.target.value = '';
+}
+
+function bbHandleChatPaste(e) {
+  // Called on paste in the chat input — check for images
+  var items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image') !== -1) {
+      e.preventDefault();
+      var file = items[i].getAsFile();
+      if (file) bbAttachFileToChat(file);
+      return;
+    }
+  }
+}
+
+function bbAttachFileToChat(file) {
+  var isImage = file.type.startsWith('image/');
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var attachment = {
+      name: file.name || ('screenshot_' + Date.now() + '.png'),
+      type: file.type,
+      data: ev.target.result,
+      isImage: isImage,
+      size: file.size
+    };
+    bbPendingAttachments.push(attachment);
+    bbRenderAttachments();
+
+    // Also add to BB.uploads for reference context
+    if (!isImage) {
+      var text = isImage ? '[Image]' : (file.name.match(/\.(txt|vtt|md)$/) ? ev.target.result : '[Binary file — ' + file.name + ']');
+      BB.uploads.push({ name: file.name, text: text, size: file.size });
+    }
+  };
+  if (isImage || !file.name.match(/\.(txt|vtt|md)$/)) {
+    reader.readAsDataURL(file);
+  } else {
+    reader.readAsText(file);
+  }
+}
+
+function bbRenderAttachments() {
+  var container = document.getElementById('bbChatAttachments');
+  container.innerHTML = '';
+  if (bbPendingAttachments.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'flex';
+  bbPendingAttachments.forEach(function(att, idx) {
+    var chip = document.createElement('span');
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:4px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;padding:2px 8px;font-size:9px;color:var(--tx);';
+    var icon = att.isImage ? '🖼' : '📄';
+    var name = att.name.length > 20 ? att.name.substring(0, 17) + '…' : att.name;
+    chip.innerHTML = icon + ' ' + name + ' <span style="cursor:pointer;color:var(--txf);margin-left:2px" onclick="bbRemoveAttachment(' + idx + ')">✕</span>';
+    if (att.isImage && att.data) {
+      var thumb = document.createElement('img');
+      thumb.src = att.data;
+      thumb.style.cssText = 'width:24px;height:24px;object-fit:cover;border-radius:2px;';
+      chip.prepend(thumb);
+    }
+    container.appendChild(chip);
+  });
+}
+
+function bbRemoveAttachment(idx) {
+  bbPendingAttachments.splice(idx, 1);
+  bbRenderAttachments();
+}
+
+function bbProcessUploadFile(file) {
+  // Process file for the Upload Files zone (left panel)
+  var isImage = file.type.startsWith('image/');
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var text = '';
+    if (file.name.match(/\.(txt|vtt|md)$/)) {
+      text = ev.target.result;
+    } else if (isImage) {
+      text = '[Image — ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)]';
+    } else {
+      text = '[Binary file — ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB). Content will be extracted by Claude.]';
+    }
+    BB.uploads.push({ name: file.name, text: text, size: file.size, isImage: isImage, data: isImage ? ev.target.result : null });
+    var list = document.getElementById('bbFileList');
+    var item = document.createElement('div');
+    item.className = 'bb-file-item';
+    item.innerHTML = (isImage ? '🖼 ' : '📄 ') + file.name + ' <span class="bb-file-remove" onclick="this.parentElement.remove()">✕</span>';
+    list.appendChild(item);
+    bbAddMsg('claude', '📎 Loaded **' + file.name + '** (' + (file.size / 1024).toFixed(0) + ' KB). I\'ll use this as reference material.');
+  };
+  if (file.name.match(/\.(txt|vtt|md)$/)) {
+    reader.readAsText(file);
+  } else {
+    reader.readAsDataURL(file);
+  }
 }
 
 function bbHandleFileUpload(e) {
