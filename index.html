@@ -7465,10 +7465,13 @@ function renderWorkspaceCanvas(slide) {
   // ── Merge line groups for preview rendering ──
   // Instead of rendering 7 tiny boxes, merge L1-L7 into one tall box with combined text
   // This makes the preview match how Google Slides renders paragraph text
+  // Skip for static templates (47, 48, 49, 01) — they render as-is
+  const _noMergeTemplates = ['01', '02', '47', '48', '49'];
+  const _skipMerge = _noMergeTemplates.includes(tpl.id);
   const mergedEls = [];
   const processedGroups = new Set();
   filledEls.forEach((el, idx) => {
-    if (el.t !== 'txt' || !el._lineGroup || !el._lineIndex) {
+    if (_skipMerge || el.t !== 'txt' || !el._lineGroup || !el._lineIndex) {
       mergedEls.push(el);
       return;
     }
