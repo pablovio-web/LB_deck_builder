@@ -7316,52 +7316,48 @@ function renderWorkspaceCanvas(slide) {
   });
   const _origSlots = slide.slots;
 
-  // Auto-split: when AI returns a single group value (e.g. "Headline") but template has L1/L2/L3,
-  // split the text across the line elements based on their maxChars
-  const _expandedSlots = Object.assign({}, _footerSlots);
-  Object.keys(_footerSlots).forEach(function(slotKey) {
-    var val = _footerSlots[slotKey];
-    if (!val || typeof val !== 'string') return;
-    var slotLower = slotKey.trim().toLowerCase();
-    // Check if this is a group name that has L1/L2/L3 elements
-    var groupEls = tpl.els.filter(function(e) {
-      return e.t === 'txt' && e._lineGroup && e._lineGroup.toLowerCase() === slotLower && e._lineIndex;
-    });
-    if (groupEls.length < 2) return;
-    // Don't split if individual L1/L2 keys already exist
-    var hasIndividual = groupEls.some(function(e) {
-      return _footerSlots[e.lbl] || _footerSlots[e.dynLabel];
-    });
-    if (hasIndividual) return;
-    // Sort by _lineIndex and split text across them by maxChars
-    groupEls.sort(function(a, b) { return (a._lineIndex || 0) - (b._lineIndex || 0); });
-    var words = val.split(/\s+/);
-    var lineIdx = 0;
-    var currentLine = '';
-    groupEls.forEach(function(e, i) {
-      var maxC = e.maxChars || 40;
-      var lineWords = [];
-      while (words.length > 0) {
-        var test = currentLine ? currentLine + ' ' + words[0] : words[0];
-        if (test.length > maxC + 3 && currentLine && i < groupEls.length - 1) {
-          break; // Move to next line
-        }
-        currentLine = test;
-        lineWords.push(words.shift());
-      }
-      _expandedSlots[e.lbl] = currentLine;
-      currentLine = '';
-    });
-    // If there are leftover words, append to last line
-    if (words.length > 0 && groupEls.length > 0) {
-      var lastLbl = groupEls[groupEls.length - 1].lbl;
-      _expandedSlots[lastLbl] = (_expandedSlots[lastLbl] || '') + ' ' + words.join(' ');
-    }
-    // Remove the original group key
-    delete _expandedSlots[slotKey];
-  });
+  // ── AUTO-SPLIT DISABLED ──
+  // Uncomment to re-enable: splits a single group value (e.g. "Headline") across L1/L2/L3 by maxChars
+  // const _expandedSlots = Object.assign({}, _footerSlots);
+  // Object.keys(_footerSlots).forEach(function(slotKey) {
+  //   var val = _footerSlots[slotKey];
+  //   if (!val || typeof val !== 'string') return;
+  //   var slotLower = slotKey.trim().toLowerCase();
+  //   var groupEls = tpl.els.filter(function(e) {
+  //     return e.t === 'txt' && e._lineGroup && e._lineGroup.toLowerCase() === slotLower && e._lineIndex;
+  //   });
+  //   if (groupEls.length < 2) return;
+  //   var hasIndividual = groupEls.some(function(e) {
+  //     return _footerSlots[e.lbl] || _footerSlots[e.dynLabel];
+  //   });
+  //   if (hasIndividual) return;
+  //   groupEls.sort(function(a, b) { return (a._lineIndex || 0) - (b._lineIndex || 0); });
+  //   var words = val.split(/\s+/);
+  //   var lineIdx = 0;
+  //   var currentLine = '';
+  //   groupEls.forEach(function(e, i) {
+  //     var maxC = e.maxChars || 40;
+  //     var lineWords = [];
+  //     while (words.length > 0) {
+  //       var test = currentLine ? currentLine + ' ' + words[0] : words[0];
+  //       if (test.length > maxC + 3 && currentLine && i < groupEls.length - 1) {
+  //         break;
+  //       }
+  //       currentLine = test;
+  //       lineWords.push(words.shift());
+  //     }
+  //     _expandedSlots[e.lbl] = currentLine;
+  //     currentLine = '';
+  //   });
+  //   if (words.length > 0 && groupEls.length > 0) {
+  //     var lastLbl = groupEls[groupEls.length - 1].lbl;
+  //     _expandedSlots[lastLbl] = (_expandedSlots[lastLbl] || '') + ' ' + words.join(' ');
+  //   }
+  //   delete _expandedSlots[slotKey];
+  // });
+  // slide = Object.assign({}, slide, { slots: _expandedSlots });
 
-  slide = Object.assign({}, slide, { slots: _expandedSlots });
+  slide = Object.assign({}, slide, { slots: _footerSlots });
 
   const filledEls = tpl.els.map(el => {
     if (el.t !== 'txt') return el;
