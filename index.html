@@ -6068,10 +6068,7 @@ function renderTemplateSuggestions(primaryTplId) {
     renderTemplateOnCanvas(canvas, tplDef, null);
     card.appendChild(canvas);
 
-    var label = document.createElement('div');
-    label.className = 'tpl-sug-label';
-    label.textContent = (tplDef.short || tplId);
-    card.appendChild(label);
+    // Template name hidden from suggestion cards — thumbnails are self-explanatory
 
     if (i === 0) {
       var rec = document.createElement('div');
