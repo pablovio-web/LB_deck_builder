@@ -10476,7 +10476,8 @@ const CLOUD_MEM = {
 
 // ── Fetch memory from Cloudinary on page load ──
 async function cloudMemFetch() {
-  // Try localStorage URL first (from latest upload), fall back to fixed public_id URL
+  // Try localStorage URL first (from latest upload with unique_filename),
+  // then fall back to fixed public_id URL
   const storedUrl = (function() { try { return localStorage.getItem('lb_cloud_mem_url'); } catch(e) { return null; } })();
   const fixedUrl = 'https://res.cloudinary.com/' + CLOUD_MEM.cloudName + '/raw/upload/' + CLOUD_MEM.publicIds.unified + '.json';
   const urls = storedUrl ? [storedUrl, fixedUrl] : [fixedUrl];
@@ -10486,7 +10487,7 @@ async function cloudMemFetch() {
       if (!resp.ok) {
         if (resp.status === 404) {
           console.log('[cloud-mem] URL not found, trying next:', url.substring(0, 80));
-          continue; // try next URL
+          continue;
         }
         throw new Error('HTTP ' + resp.status);
       }
@@ -10497,14 +10498,17 @@ async function cloudMemFetch() {
       return mem;
     } catch (err) {
       console.warn('[cloud-mem] Fetch failed for URL:', url.substring(0, 80), err.message);
-      continue; // try next URL
+      continue;
     }
   }
   console.log('[cloud-mem] No cloud memory found — starting fresh.');
   return null;
 }
 
-// ── Upload memory to Cloudinary (overwrites previous) ──
+// ── Upload memory to Cloudinary ──
+// Strategy: try fixed public_id first (ideal for stable URL).
+// If that fails (e.g. "overwrite not allowed"), retry with unique_filename
+// and save the URL to localStorage so cloudMemFetch can find it.
 async function cloudMemUpload(memoryObj) {
   if (CLOUD_MEM.saving) return false;
   CLOUD_MEM.saving = true;
@@ -10512,20 +10516,30 @@ async function cloudMemUpload(memoryObj) {
     const jsonStr = JSON.stringify(memoryObj, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const file = new File([blob], 'lb_unified_memory.json', { type: 'application/json' });
+    const apiUrl = 'https://api.cloudinary.com/v1_1/' + CLOUD_MEM.cloudName + '/raw/upload';
 
-    const fd = new FormData();
+    // Attempt 1: fixed public_id (stable URL, fetchable without localStorage)
+    var fd = new FormData();
     fd.append('file', file);
     fd.append('upload_preset', CLOUD_MEM.uploadPreset);
     fd.append('folder', CLOUD_MEM.folder);
+    fd.append('public_id', 'lb_unified_memory');
     fd.append('resource_type', 'raw');
-    fd.append('use_filename', 'true');
-    fd.append('unique_filename', 'true');
-    fd.append('tags', 'lb_unified_memory');
 
-    const resp = await fetch('https://api.cloudinary.com/v1_1/' + CLOUD_MEM.cloudName + '/raw/upload', {
-      method: 'POST',
-      body: fd,
-    });
+    var resp = await fetch(apiUrl, { method: 'POST', body: fd });
+
+    // If fixed public_id fails, retry with unique_filename
+    if (!resp.ok) {
+      console.warn('[cloud-mem] Fixed public_id upload failed, retrying with unique filename…');
+      var fd2 = new FormData();
+      fd2.append('file', new File([blob], 'lb_unified_memory.json', { type: 'application/json' }));
+      fd2.append('upload_preset', CLOUD_MEM.uploadPreset);
+      fd2.append('folder', CLOUD_MEM.folder);
+      fd2.append('resource_type', 'raw');
+      fd2.append('use_filename', 'true');
+      fd2.append('unique_filename', 'true');
+      resp = await fetch(apiUrl, { method: 'POST', body: fd2 });
+    }
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
