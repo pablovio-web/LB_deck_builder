@@ -7425,7 +7425,42 @@ function renderWorkspaceCanvas(slide) {
     return el;
   });
 
-  const workingTpl = Object.assign({}, tpl, { els: filledEls });
+  // ── Merge line groups for preview rendering ──
+  // Instead of rendering 7 tiny boxes, merge L1-L7 into one tall box with combined text
+  // This makes the preview match how Google Slides renders paragraph text
+  const mergedEls = [];
+  const processedGroups = new Set();
+  filledEls.forEach((el, idx) => {
+    if (el.t !== 'txt' || !el._lineGroup || !el._lineIndex) {
+      mergedEls.push(el);
+      return;
+    }
+    const grp = el._lineGroup;
+    if (processedGroups.has(grp)) return; // already merged
+    processedGroups.add(grp);
+
+    // Gather all elements in this group
+    const groupEls = filledEls.filter(e => e.t === 'txt' && e._lineGroup === grp && e._lineIndex);
+    groupEls.sort((a, b) => (a._lineIndex || 0) - (b._lineIndex || 0));
+
+    // Combine text values with \n, calculate merged bounding box
+    const texts = groupEls.map(e => (e.val || e.placeholder || '').trim()).filter(Boolean);
+    const minY = Math.min(...groupEls.map(e => e.y || 0));
+    const maxYH = Math.max(...groupEls.map(e => (e.y || 0) + (e.h || 12)));
+    const mergedH = maxYH - minY;
+
+    // Use first element's properties as base, override with merged values
+    const first = groupEls[0];
+    mergedEls.push(Object.assign({}, first, {
+      val: texts.join('\n'),
+      y: minY,
+      h: mergedH,
+      _lineGroup: grp,
+      _mergedForPreview: true
+    }));
+  });
+
+  const workingTpl = Object.assign({}, tpl, { els: mergedEls });
   const selectedIndices = new Set(WS_SEL.selectedEls.map(s => s.elIdx));
   renderTemplateOnCanvasMultiSelect(canvas, workingTpl, selectedIndices);
   initWorkspaceCanvasEvents();
