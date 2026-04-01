@@ -8810,11 +8810,13 @@ function generateGasScript() {
     // Section name fallback: slide.section → slide.sectionName → "Section Name" slot → "Section Label" slot → plan section
     const _fSectionName = (s.section || s.sectionName || (s.slots && (s.slots['Section Name'] || s.slots['Section Label'] || s.slots['Section Title'])) || '').toUpperCase();
     const _fPageNum = String(num);
-    const _footerColor = _exportLight ? '#000000' : '#ffffff';
     const footerFix = (tpl !== '01' && tpl !== '02' && tpl !== '49') ? `
     // Footer fix — match shapes in bottom 25pt, set text + color based on bg
     try {
-      var _fc = ${JSON.stringify(_footerColor)};
+      var _bgFill = sl.getBackground().getSolidFill();
+      var _bgR = 0, _bgG = 0, _bgB = 0;
+      if (_bgFill) { var _rgb = _bgFill.getColor().asRgbColor(); _bgR = _rgb.getRed(); _bgG = _rgb.getGreen(); _bgB = _rgb.getBlue(); }
+      var _fc = (_bgR * 299 + _bgG * 587 + _bgB * 114) / 1000 <= 128 ? '#ffffff' : '#000000';
       var _fs = getAllShapes(sl);
       _fs.forEach(function(sh) {
         try {
@@ -8853,7 +8855,8 @@ function generateGasScript() {
     var _assets = {};
 ${_monoLine}${_monoLightLine}${_monoDarkLine}${_triptychLines}    buildSlide(sl, ${JSON.stringify(tpl)}, ${page}, ${JSON.stringify(section)}, ${JSON.stringify(dtitle)}, ${JSON.stringify(cname)}, _assets);
     injectSlotContent(sl, ${JSON.stringify(tpl)}, {${slotsEntries}}, ${JSON.stringify(notesText)}, ${JSON.stringify(s._charOverrides || {})});${footerFix}
-${imgLines}  })();`;
+${imgLines}${(tpl !== '01' && tpl !== '02' && tpl !== '49') ? '\n    fixMonogram(sl, _assets);' : ''}
+  })();`;
   }).join('\n\n');
 
   var _gasSlotPlaceholders = function() {
@@ -8911,6 +8914,9 @@ ${imgLines}  })();`;
   // ── Utility functions ──
   _gas.push("\n\n// Auto-fit text\nfunction autoFitText(shape) {\n  try {\n    var tf = shape.getText();\n    var fs = tf.getTextStyle().getFontSize();\n    if (!fs || fs <= 6) return;\n    var shapeH = shape.getHeight();\n    var shapeW = shape.getWidth();\n    var text = tf.asString();\n    var charsPerLine = Math.floor(shapeW / (fs * 0.6));\n    var lines = Math.ceil(text.length / Math.max(charsPerLine, 1));\n    var textH = lines * fs * 1.25;\n    var attempts = 0;\n    while (textH > shapeH && fs > 6 && attempts < 20) {\n      fs -= 2;\n      tf.getTextStyle().setFontSize(fs);\n      charsPerLine = Math.floor(shapeW / (fs * 0.6));\n      lines = Math.ceil(text.length / Math.max(charsPerLine, 1));\n      textH = lines * fs * 1.25;\n      attempts++;\n    }\n  } catch(e) {}\n}\n\nfunction expandShapeToFit(shape, slideWidth) {\n  try {\n    slideWidth = slideWidth || 720;\n    var tf = shape.getText();\n    var fs = tf.getTextStyle().getFontSize() || 10;\n    var text = tf.asString().trim();\n    var words = text.split(' ');\n    var longestLine = 0;\n    var current = 0;\n    words.forEach(function(w) {\n      current += w.length * fs * 0.62;\n      if (current > longestLine) longestLine = current;\n    });\n    var idealW = Math.min(longestLine + fs * 2, slideWidth - shape.getLeft() - 4);\n    if (idealW > shape.getWidth() + 10) { shape.setWidth(idealW); }\n  } catch(e) {}\n}\n\nfunction getPageShapes(slide) {\n  var result = [];\n  try {\n    slide.getPageElements().forEach(function(el) {\n      try { var s = el.asShape(); if (s) result.push(s); } catch(e) {}\n      try {\n        var g = el.asGroup();\n        if (g) g.getChildren().forEach(function(c) {\n          try { var s2 = c.asShape(); if (s2) result.push(s2); } catch(e) {}\n        });\n      } catch(e) {}\n    });\n  } catch(e) {}\n  return result;\n}\n\nfunction insertImageByKey(slide, key, url, lbl) {\n  if (!url) return;\n  try {\n    var blob = UrlFetchApp.fetch(url).getBlob();\n    var shapes = getPageShapes(slide);\n    var matched = null;\n    var bracketFallback = null;\n    for (var i = 0; i < shapes.length; i++) {\n      var s = shapes[i];\n      try {\n        var desc = (s.getDescription && s.getDescription()) || '';\n        var ttl = (s.getTitle && s.getTitle()) || '';\n        var txt = '';\n        try { txt = s.getText().asString().trim(); } catch(te) {}\n        if (desc === key || ttl === key) { matched = s; break; }\n        if (lbl && txt === lbl) { matched = s; break; }\n        if (txt && txt.charAt(0) === '[' && txt.charAt(txt.length - 1) === ']') {\n          if (!bracketFallback) bracketFallback = s;\n        }\n      } catch(e2) {}\n    }\n    if (!matched && bracketFallback) matched = bracketFallback;\n    if (matched) {\n      var img = slide.insertImage(blob, matched.getLeft(), matched.getTop(), matched.getWidth(), matched.getHeight());\n      img.setDescription(key);\n      try { matched.remove(); } catch(re) {}\n      // Fix z-order: sendToBack puts image behind bg rect, then bringForward\n      // lifts it one layer above the bg rect but still below all text shapes.\n      try {\n        img.sendToBack();\n        img.bringForward();\n      } catch(ze) {}\n      Logger.log('Image inserted: ' + key);\n    } else {\n      Logger.log('No image placeholder for: ' + key);\n    }\n  } catch(e) { Logger.log('Image insert failed (' + key + '): ' + e.message); }\n}");
   _gas.push('\n\n');
+
+  // ── fixMonogram: runtime RGB check to resolve monogram color based on slide bg ──
+  _gas.push("function fixMonogram(slide, assets) {\n  if (!assets) return;\n  try {\n    var bg = slide.getBackground();\n    var fill = bg.getSolidFill();\n    var r = 0, g = 0, b = 0;\n    if (fill) {\n      var rgb = fill.getColor().asRgbColor();\n      r = rgb.getRed(); g = rgb.getGreen(); b = rgb.getBlue();\n    }\n    var lum = (r * 299 + g * 587 + b * 114) / 1000;\n    var isDark = lum <= 128;\n    var correctUrl = isDark ? (assets.lb_logo_dark || assets.lb_monogram) : (assets.lb_logo_light || assets.lb_monogram);\n    if (!correctUrl) return;\n    var elements = slide.getPageElements();\n    for (var i = 0; i < elements.length; i++) {\n      try {\n        var el = elements[i];\n        var left = el.getLeft(), top = el.getTop();\n        if (left > 8 && left < 20 && top > 375 && top < 395) {\n          var w = el.getWidth(), h = el.getHeight();\n          el.remove();\n          var blob = UrlFetchApp.fetch(correctUrl).getBlob();\n          var img = slide.insertImage(blob, left, top, w, h);\n          img.setDescription(isDark ? 'lb_monogram_white' : 'lb_monogram_black');\n          img.sendToBack();\n          img.bringForward();\n          Logger.log('fixMonogram: ' + (isDark ? 'white' : 'black') + ' (bg lum=' + Math.round(lum) + ')');\n          return;\n        }\n      } catch(me) {}\n    }\n  } catch(e) { Logger.log('fixMonogram error: ' + e.message); }\n}\n\n");
 
   // ── buildDeck ──
 
