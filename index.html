@@ -5792,7 +5792,7 @@ async function bbSendMessage() {
     'Heading: [text]\n' +
     '...\n' +
     '```\n\n' +
-    'IMPORTANT: Every time you update the outline, include the FULL updated outline in the code block — not just changes.\n' +
+    'CRITICAL RULE: ANY time you make a change to the outline — even a small one like swapping two slides, changing a heading, removing a slide, or adjusting copy — you MUST include the COMPLETE updated outline in a ```OUTLINE code block. The preview panel ONLY updates when it sees this block. If you respond without the block, the preview stays stale and the user cannot see your changes. NEVER describe changes without also outputting the full updated outline.\n' +
     'The outline preview panel on the right auto-extracts content between ```OUTLINE and ``` markers.';
 
   // Build messages for API — include image attachments as multimodal content
@@ -5828,6 +5828,21 @@ async function bbSendMessage() {
     if (outlineMatch) {
       BB.outline = outlineMatch[1].trim();
       bbUpdateOutline(BB.outline);
+    } else if (BB.outline && /\b(swap|switch|move|remove|delete|add|change|replace|rename|reorder|update|edit|cut|drop|insert)\b/i.test(msg)) {
+      // User asked for a change but AI didn't include the updated outline — auto-prompt
+      bbAddMsg('claude', '⏳ Updating outline preview…');
+      try {
+        var followUp = [{ role: 'user', content: 'You made changes but didn\'t include the updated outline. Please output the COMPLETE updated outline now in a ```OUTLINE code block.' }];
+        var allMsgs = apiMessages.concat([{ role: 'assistant', content: response }]).concat(followUp);
+        var data2 = await callClaude(system, allMsgs, 4000);
+        var response2 = data2.content.map(function(b) { return b.text || ''; }).join('');
+        var match2 = response2.match(/```OUTLINE\n([\s\S]*?)```/);
+        if (match2) {
+          BB.outline = match2[1].trim();
+          bbUpdateOutline(BB.outline);
+          bbAddMsg('claude', '✓ Outline preview updated.');
+        }
+      } catch(e2) { /* silent fallback */ }
     }
 
   } catch(err) {
