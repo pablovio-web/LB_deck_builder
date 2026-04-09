@@ -6966,7 +6966,10 @@ async function generateSingleSlide() {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 800,
         system: system,
-        messages: [{ role: 'user', content: userContent }],
+        messages: [
+          { role: 'user', content: userContent },
+          { role: 'assistant', content: '{"templateId":"' },
+        ],
       }),
     });
     if (!resp.ok) {
@@ -6974,7 +6977,9 @@ async function generateSingleSlide() {
       throw new Error(errJson.error && errJson.error.message ? errJson.error.message : ('HTTP ' + resp.status));
     }
     const data = await resp.json();
-    const raw = (data.content || []).map(function(b){ return b.text || ''; }).join('').replace(/```json|```/g, '').trim();
+    let raw = (data.content || []).map(function(b){ return b.text || ''; }).join('').replace(/```json|```/g, '').trim();
+    // Re-attach the prefill so the response is valid JSON
+    raw = '{"templateId":"' + raw;
     const parsed = safeParseJSON(raw);
     pickedTplId = parsed.templateId;
     rationale = parsed.rationale || '';
