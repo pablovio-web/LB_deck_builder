@@ -1887,11 +1887,10 @@ function handleGoogleAuth(response) {
 
         <div class="bb-section">
           <div class="bb-label">Outline Patterns & Settings</div>
-          <div style="font-size:8px;color:var(--txd);margin-bottom:4px;">Saves section structures, pitch type, tone — not chat history</div>
+          <div style="font-size:8px;color:var(--txd);margin-bottom:4px;">☁️ Syncs to shared cloud memory (same as Deck Builder)</div>
           <div style="display:flex;gap:6px;">
-            <button class="btn-sm" onclick="document.getElementById('bbMemoryInput').click()" style="font-size:9px;flex:1;">📥 Load</button>
-            <button class="btn-sm" onclick="bbSaveMemory()" style="font-size:9px;flex:1;">📤 Save</button>
-            <input type="file" id="bbMemoryInput" accept=".json" style="display:none" onchange="bbLoadMemory(event)">
+            <button class="btn-sm" onclick="bbLoadMemory()" style="font-size:9px;flex:1;">☁️ Load</button>
+            <button class="btn-sm" onclick="bbSaveMemory()" style="font-size:9px;flex:1;">☁️ Save</button>
           </div>
         </div>
 
@@ -6126,15 +6125,9 @@ function bbClearChat() {
   if (list) list.innerHTML = '';
 }
 
-function bbSaveMemory() {
-  if (!BB.messages.length) return;
-  var learnings = [];
-  BB.messages.forEach(function(m) {
-    if (m.role === 'claude' && m.text.indexOf('OUTLINE') !== -1) {
-      learnings.push('Generated outline with sections');
-    }
-  });
-  // Extract outline patterns
+// Save Brief Builder memory to the shared cloud memory file (same as Deck Builder)
+async function bbSaveMemory() {
+  // Extract outline sections from current outline
   var sections = [];
   if (BB.outline) {
     var sectionMatches = BB.outline.match(/SECTION:\s*(.+)/g);
@@ -6142,43 +6135,88 @@ function bbSaveMemory() {
       sections = sectionMatches.map(function(s) { return s.replace('SECTION:', '').trim(); });
     }
   }
-  var memory = {
-    version: 1,
-    type: 'lb_brief_memory',
-    savedAt: new Date().toISOString(),
-    learnings: learnings,
-    outlinePatterns: [{ type: BB.settings.pitchType, sections: sections }],
-    lastSettings: BB.settings
-  };
-  var blob = new Blob([JSON.stringify(memory, null, 2)], { type: 'application/json' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'lb_brief_memory.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  bbAddMsg('claude', '💾 Memory saved. Load this file next time to restore your preferences.');
+  // Seed a learning if the user has generated outlines but has none yet
+  if (!BB.memory) BB.memory = { learnings: [], outlinePatterns: [] };
+  if (sections.length && BB.messages.length) {
+    var note = 'Outline uses ' + sections.length + ' sections (' + (BB.settings.pitchType || 'pitch') + ')';
+    if (!BB.memory.learnings.includes(note)) BB.memory.learnings.push(note);
+  }
+  // Merge current outline pattern into BB.memory
+  if (sections.length) {
+    BB.memory.outlinePatterns = (BB.memory.outlinePatterns || []);
+    BB.memory.outlinePatterns.unshift({ type: BB.settings.pitchType || 'pitch', sections: sections });
+    BB.memory.outlinePatterns = BB.memory.outlinePatterns.slice(0, 15);
+  }
+
+  if (typeof cloudMemAutoSave !== 'function') {
+    bbAddMsg('claude', '⚠ Cloud memory not available. Try refreshing the page.');
+    return;
+  }
+  bbAddMsg('claude', '☁️ Saving to cloud memory…');
+  try {
+    await cloudMemAutoSave();
+    var count = (BB.memory.learnings || []).length;
+    var pcount = (BB.memory.outlinePatterns || []).length;
+    bbAddMsg('claude', '✅ Saved to cloud memory — ' + count + ' preference' + (count === 1 ? '' : 's') + ', ' + pcount + ' outline pattern' + (pcount === 1 ? '' : 's') + '. Will auto-load on next page load.');
+  } catch (err) {
+    bbAddMsg('claude', '⚠ Cloud save failed: ' + err.message);
+  }
 }
 
-function bbLoadMemory(e) {
-  var file = e.target.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    try {
-      var mem = JSON.parse(ev.target.result);
-      BB.memory = mem;
-      if (mem.lastSettings) {
-        if (mem.lastSettings.client) document.getElementById('bbClientName').value = mem.lastSettings.client;
-        if (mem.lastSettings.title) document.getElementById('bbDeckTitle').value = mem.lastSettings.title;
-        if (mem.lastSettings.audience) document.getElementById('bbAudience').value = mem.lastSettings.audience;
+// Load Brief Builder memory from the shared cloud memory file (same as Deck Builder)
+async function bbLoadMemory(e) {
+  // e may be a file-input event (legacy) OR undefined when called directly
+  if (e && e.target && e.target.files && e.target.files[0]) {
+    // Legacy: user selected a local file — still support it as a fallback
+    var file = e.target.files[0];
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var mem = JSON.parse(ev.target.result);
+        BB.memory = mem;
+        if (mem.lastSettings) {
+          if (mem.lastSettings.client && document.getElementById('bbClientName')) document.getElementById('bbClientName').value = mem.lastSettings.client;
+          if (mem.lastSettings.title && document.getElementById('bbDeckTitle')) document.getElementById('bbDeckTitle').value = mem.lastSettings.title;
+          if (mem.lastSettings.audience && document.getElementById('bbAudience')) document.getElementById('bbAudience').value = mem.lastSettings.audience;
+        }
+        bbAddMsg('claude', '🧠 Memory loaded from file — ' + (mem.learnings ? mem.learnings.length : 0) + ' preferences restored.');
+      } catch(err) {
+        bbAddMsg('claude', '⚠ Failed to load memory file: ' + err.message);
       }
-      bbAddMsg('claude', '🧠 Memory loaded! ' + (mem.learnings ? mem.learnings.length : 0) + ' learned preferences restored.');
-    } catch(err) {
-      bbAddMsg('claude', '⚠ Failed to load memory file: ' + err.message);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+    return;
+  }
+
+  // Cloud load path
+  if (typeof cloudMemFetch !== 'function') {
+    bbAddMsg('claude', '⚠ Cloud memory not available. Try refreshing the page.');
+    return;
+  }
+  bbAddMsg('claude', '☁️ Loading from cloud memory…');
+  try {
+    var mem = await cloudMemFetch();
+    if (!mem) {
+      bbAddMsg('claude', '⚠ No cloud memory found yet. Click Save first.');
+      return;
     }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
+    BB.memory = {
+      learnings: mem.briefLearnings || [],
+      outlinePatterns: mem.outlinePatterns || [],
+      lastSettings: mem.briefSettings || {},
+    };
+    if (mem.briefSettings) {
+      if (mem.briefSettings.client && document.getElementById('bbClientName')) document.getElementById('bbClientName').value = mem.briefSettings.client;
+      if (mem.briefSettings.title && document.getElementById('bbDeckTitle')) document.getElementById('bbDeckTitle').value = mem.briefSettings.title;
+      if (mem.briefSettings.audience && document.getElementById('bbAudience')) document.getElementById('bbAudience').value = mem.briefSettings.audience;
+    }
+    var count = BB.memory.learnings.length;
+    var pcount = BB.memory.outlinePatterns.length;
+    bbAddMsg('claude', '✅ Loaded from cloud — ' + count + ' preference' + (count === 1 ? '' : 's') + ', ' + pcount + ' outline pattern' + (pcount === 1 ? '' : 's') + '.');
+  } catch (err) {
+    bbAddMsg('claude', '⚠ Cloud load failed: ' + err.message);
+  }
 }
 
 // Restore outline, chat messages, and settings from localStorage on load
