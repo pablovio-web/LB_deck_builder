@@ -461,6 +461,27 @@ textarea::placeholder { color: var(--txf); }
 .btn-plan:hover { background: var(--acc2); }
 .btn-plan:disabled { background: var(--s3); color: var(--txf); cursor: not-allowed; }
 
+/* Mode toggle — Full Deck / Single Slide */
+.mode-btn {
+  flex: 1;
+  padding: 7px 10px;
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  color: var(--txd);
+  border-radius: var(--r);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 10px;
+  transition: all .15s;
+}
+.mode-btn:hover { border-color: var(--b3); color: var(--tx); }
+.mode-btn.active {
+  background: var(--acc);
+  color: #000;
+  border-color: var(--acc);
+  font-weight: 500;
+}
+
 /* Slide plan list */
 .plan-list { display: flex; flex-direction: column; gap: 3px; margin-top: 4px; }
 .plan-item {
@@ -1996,9 +2017,20 @@ function handleGoogleAuth(response) {
         <input type="text" id="deckTitle" placeholder="e.g. Vision &amp; Strategy 2026" style="width:100%">
       </div>
 
+      <!-- Mode toggle: Full Deck vs Single Slide -->
       <div class="brief-section">
-        <div class="outline-label">Pitch Outline</div>
-        <textarea id="outlineInput" rows="10" placeholder="Describe each section and key slides:
+        <div class="outline-label">Mode</div>
+        <div style="display:flex;gap:4px;">
+          <button type="button" id="modeFullDeck" class="mode-btn active" onclick="setPlanMode('full')">✦ Full Deck</button>
+          <button type="button" id="modeSingleSlide" class="mode-btn" onclick="setPlanMode('single')">▪ Single Slide</button>
+        </div>
+      </div>
+
+      <!-- FULL DECK controls (default) -->
+      <div id="fullDeckControls">
+        <div class="brief-section">
+          <div class="outline-label">Pitch Outline</div>
+          <textarea id="outlineInput" rows="10" placeholder="Describe each section and key slides:
 
 Section 1: The Problem
 - Agencies lose pitches on price
@@ -2007,23 +2039,53 @@ Section 1: The Problem
 Section 2: Our Solution
 - The LB Method
 …"></textarea>
+        </div>
+
+        <div class="brief-section">
+          <div class="outline-label">Upload Brief (PDF — optional)</div>
+          <label id="briefDropZone" style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px dashed var(--b2);border-radius:var(--r);padding:8px 10px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--b3)'" onmouseout="this.style.borderColor='var(--b2)'">
+            <span style="font-size:14px">📎</span>
+            <span id="briefFileName" style="font-size:10px;color:var(--txd)">Click to upload…</span>
+            <input type="file" id="briefFile" accept=".pdf,.docx" style="display:none" onchange="handleBriefUpload(event)">
+          </label>
+          <div id="briefStatus" style="font-size:9px;color:var(--txf);height:12px"></div>
+        </div>
+
+        <button class="btn-plan" id="btnPlan" onclick="planDeck()">
+          ✦ Plan Deck
+        </button>
       </div>
 
-      <div class="brief-section">
-        <div class="outline-label">Upload Brief (PDF — optional)</div>
-        <label id="briefDropZone" style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px dashed var(--b2);border-radius:var(--r);padding:8px 10px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--b3)'" onmouseout="this.style.borderColor='var(--b2)'">
-          <span style="font-size:14px">📎</span>
-          <span id="briefFileName" style="font-size:10px;color:var(--txd)">Click to upload…</span>
-          <input type="file" id="briefFile" accept=".pdf,.docx" style="display:none" onchange="handleBriefUpload(event)">
-        </label>
-        <div id="briefStatus" style="font-size:9px;color:var(--txf);height:12px"></div>
+      <!-- SINGLE SLIDE controls (hidden by default) -->
+      <div id="singleSlideControls" style="display:none">
+        <div class="brief-section">
+          <div class="outline-label">Describe this slide</div>
+          <textarea id="singleSlideDesc" rows="8" placeholder="Describe the slide you want — purpose, layout, key points.
+
+Example:
+3-column services slide:
+- Strategy: align vision
+- Design: craft experience
+- Delivery: ship results"></textarea>
+        </div>
+
+        <div class="brief-section">
+          <div class="outline-label">Sketch (optional)</div>
+          <label id="sketchDropZone" style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px dashed var(--b2);border-radius:var(--r);padding:8px 10px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--b3)'" onmouseout="this.style.borderColor='var(--b2)'">
+            <span style="font-size:14px">✏️</span>
+            <span id="sketchFileName" style="font-size:10px;color:var(--txd)">Rough sketch to match layout…</span>
+            <input type="file" id="sketchFile" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none" onchange="handleSketchUpload(event)">
+          </label>
+          <div id="sketchPreview" style="display:none;margin-top:6px"></div>
+          <div style="font-size:9px;color:var(--txf);margin-top:4px">A rough hand-drawn sketch helps Claude pick the right template layout.</div>
+        </div>
+
+        <button class="btn-plan" id="btnSingleSlide" onclick="generateSingleSlide()">
+          ✦ Generate Slide
+        </button>
       </div>
 
-      <button class="btn-plan" id="btnPlan" onclick="planDeck()">
-        ✦ Plan Deck
-      </button>
-
-      <!-- Slide plan list -->
+      <!-- Slide plan list (shared between modes) -->
       <div id="planSection" style="display:none;margin-top:14px">
         <div class="outline-label" style="margin-bottom:6px">Slide Plan — <span id="planCount">0</span> slides</div>
         <div class="plan-list" id="planList"></div>
@@ -6550,7 +6612,57 @@ const t2_S = {
   briefPdf: null,
   memory: null, // loaded lb_memory.json — global preferences across all sessions
   currentSectionTitle: '', // tracks active section from latest approved divider
+  planMode: 'full', // 'full' | 'single' — Full Deck or Single Slide mode
+  sketchDataUrl: null, // optional sketch image for Single Slide mode
 };
+
+// ══════════════════════════════════════════════════════
+// PLAN MODE TOGGLE — Full Deck vs Single Slide
+// ══════════════════════════════════════════════════════
+function setPlanMode(mode) {
+  if (mode !== 'full' && mode !== 'single') mode = 'full';
+  t2_S.planMode = mode;
+  try { localStorage.setItem('lb_plan_mode', mode); } catch(e) {}
+  var full = document.getElementById('modeFullDeck');
+  var single = document.getElementById('modeSingleSlide');
+  if (full) full.classList.toggle('active', mode === 'full');
+  if (single) single.classList.toggle('active', mode === 'single');
+  var fullControls = document.getElementById('fullDeckControls');
+  var singleControls = document.getElementById('singleSlideControls');
+  if (fullControls) fullControls.style.display = (mode === 'full') ? '' : 'none';
+  if (singleControls) singleControls.style.display = (mode === 'single') ? '' : 'none';
+}
+
+function handleSketchUpload(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var nameEl = document.getElementById('sketchFileName');
+  if (nameEl) nameEl.textContent = file.name;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    t2_S.sketchDataUrl = ev.target.result;
+    var preview = document.getElementById('sketchPreview');
+    if (preview) {
+      preview.innerHTML = '<img src="' + t2_S.sketchDataUrl + '" style="max-width:100%;max-height:140px;border-radius:4px;border:1px solid var(--b1)">';
+      preview.style.display = '';
+    }
+  };
+  reader.onerror = function() {
+    if (typeof addChatMsg === 'function') addChatMsg('claude', '⚠ Failed to read sketch file.');
+  };
+  reader.readAsDataURL(file);
+}
+
+// Restore plan mode on load
+(function() {
+  try {
+    var saved = localStorage.getItem('lb_plan_mode');
+    if (saved === 'single' || saved === 'full') {
+      // Defer until DOM is ready so the buttons exist
+      document.addEventListener('DOMContentLoaded', function() { setPlanMode(saved); });
+    }
+  } catch(e) {}
+})();
 
 // ══════════════════════════════════════════════════════
 // BRIEF UPLOAD
@@ -6774,6 +6886,147 @@ Respond ONLY with a JSON array, no markdown, no preamble:
 
   btn.disabled = false;
   btn.textContent = '✦ Plan Deck';
+}
+
+// ══════════════════════════════════════════════════════
+// SINGLE SLIDE MODE — generate one slide from description + optional sketch
+// ══════════════════════════════════════════════════════
+async function generateSingleSlide() {
+  const desc = (document.getElementById('singleSlideDesc').value || '').trim();
+  if (!desc && !t2_S.sketchDataUrl) {
+    addChatMsg('claude', 'Please provide a description of the slide or upload a sketch (or both).');
+    return;
+  }
+
+  const apiKey = getApiKey();
+  if (!apiKey || apiKey.length < 20) {
+    addChatMsg('claude', '⚠ Missing API key. Paste your Anthropic key in the top bar first.');
+    return;
+  }
+
+  const client = document.getElementById('clientName').value.trim() || 'CLIENT';
+  const title  = document.getElementById('deckTitle').value.trim() || 'DECK TITLE';
+
+  const btn = document.getElementById('btnSingleSlide');
+  const origLabel = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Picking template…';
+  addChatMsg('claude', '✦ Picking the best template for your slide…');
+
+  // Build list of pickable templates — EXCLUDE deck-structural ones
+  //   01, 02 = covers (need deck title/client logo)
+  //   03, 04 = title page / chapter (section dividers for multi-slide decks)
+  //   28, 29, 30, 31 = agenda slides (only meaningful with section structure)
+  //   47 = About Us (static, bio-specific)
+  //   49 = Thank You (must be last)
+  const excluded = new Set(['01','02','03','04','28','29','30','31','47','49']);
+  const tplList = Object.entries(TEMPLATE_DESCRIPTIONS)
+    .filter(function(entry) { return !excluded.has(entry[0]); })
+    .map(function(entry) { return entry[0] + ': ' + entry[1]; })
+    .join('\n');
+
+  const hasSketch = !!t2_S.sketchDataUrl;
+  const system = 'You are an expert pitch-deck designer. Given a description of a single slide' +
+    (hasSketch ? ' AND a rough sketch image of the desired layout' : '') +
+    ', pick the BEST template from the library below.\n\n' +
+    'Template library (id: description):\n' + tplList + '\n\n' +
+    'RULES:\n' +
+    '- Choose ONE template id that best matches the described layout and content type.\n' +
+    (hasSketch ? '- The sketch shows the approximate layout the user wants. Match its structure (columns, headline placement, list vs paragraph, etc.).\n' : '') +
+    '- If the description mentions N parallel items (columns, phases, steps), pick a template whose column count matches.\n' +
+    '- NEVER invent facts about the client ("' + client + '") — the name is just a label.\n' +
+    '- Preserve the user\'s exact copy in the "content" field — do NOT paraphrase it.\n\n' +
+    'Respond ONLY with JSON, no markdown:\n' +
+    '{"templateId":"19","rationale":"one sentence why this template fits","content":"the verbatim description text"}';
+
+  // Build user message: text + optional image
+  const userContent = [];
+  if (hasSketch) {
+    const b64 = t2_S.sketchDataUrl.split(',')[1];
+    const mediaMatch = t2_S.sketchDataUrl.match(/^data:([^;]+);/);
+    const mediaType = (mediaMatch && mediaMatch[1]) || 'image/png';
+    userContent.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } });
+  }
+  userContent.push({
+    type: 'text',
+    text: 'Client: ' + client + '\nDeck title: ' + title + '\n\nSlide description:\n' + (desc || '(no text description — use the sketch)') + '\n\nReturn the JSON now.'
+  });
+
+  let pickedTplId, rationale, content;
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 800,
+        system: system,
+        messages: [{ role: 'user', content: userContent }],
+      }),
+    });
+    if (!resp.ok) {
+      const errJson = await resp.json().catch(function(){ return {}; });
+      throw new Error(errJson.error && errJson.error.message ? errJson.error.message : ('HTTP ' + resp.status));
+    }
+    const data = await resp.json();
+    const raw = (data.content || []).map(function(b){ return b.text || ''; }).join('').replace(/```json|```/g, '').trim();
+    const parsed = safeParseJSON(raw);
+    pickedTplId = parsed.templateId;
+    rationale = parsed.rationale || '';
+    content = parsed.content || desc;
+  } catch (err) {
+    addChatMsg('claude', '⚠ Template selection failed: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = origLabel;
+    return;
+  }
+
+  // Validate the picked template exists in our library
+  const tplDef = HARDCODED_LIBRARY.find(function(t) { return t.id === pickedTplId; });
+  if (!tplDef) {
+    addChatMsg('claude', '⚠ Claude picked template ' + pickedTplId + ' but it\'s not in the library. Try again with a clearer description.');
+    btn.disabled = false;
+    btn.textContent = origLabel;
+    return;
+  }
+
+  // Build 1-item plan. Standalone mode — wipes any existing deck.
+  const planItem = {
+    slideNum: 1,
+    topic: (desc || 'Single slide').substring(0, 60),
+    section: '',
+    templateId: pickedTplId,
+    rationale: rationale,
+    content: content,
+  };
+
+  t2_S.plan = [planItem];
+  t2_S.slides = [];
+  t2_S.current = 0;
+  t2_S.chatHistory = [];
+  t2_S.feedbackHistory = [];
+  t2_S.currentSectionTitle = '';
+  try {
+    localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+    localStorage.removeItem('lb_slides_v4');
+  } catch(e) {}
+
+  renderPlanList();
+  document.getElementById('planSection').style.display = '';
+  document.getElementById('planCount').textContent = '1';
+
+  addChatMsg('claude', '✓ Picked template ' + pickedTplId + ' — ' + (TEMPLATE_DESCRIPTIONS[pickedTplId] || '').split('—')[0].trim() + '\n\n' + rationale + '\n\nFilling in the copy…');
+
+  btn.disabled = false;
+  btn.textContent = origLabel;
+
+  // Delegate to existing per-slide generator — it handles slot filling + canvas rendering
+  generateSlide(0);
 }
 
 // ══════════════════════════════════════════════════════
