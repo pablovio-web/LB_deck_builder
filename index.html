@@ -6616,22 +6616,37 @@ const t2_S = {
   sketchDataUrl: null, // optional sketch image for Single Slide mode
 };
 
-// Quota-safe localStorage persistence for slides. Cloud autosave (Cloudinary) is the
-// source of truth; local is just a fast-reload cache. If we exceed the ~5MB quota
-// we drop the cache silently — the cloud copy still has the data.
-let _slidesQuotaWarned = false;
-const _SLIDES_KEY = 'lb_slides_v4';
-function saveSlidesLocal() {
+// Quota-safe localStorage persistence. Cloud autosave (Cloudinary) is the source
+// of truth; local is just a fast-reload cache. If we exceed the ~5MB quota we
+// try to evict other transient caches; if still full, we drop the cache silently
+// and rely on cloud autosave.
+const _quotaWarnedKeys = new Set();
+function safeLocalSet(key, value) {
   try {
-    localStorage.setItem(_SLIDES_KEY, JSON.stringify(t2_S.slides));
+    localStorage.setItem(key, value);
+    return true;
   } catch (err) {
-    if (!_slidesQuotaWarned) {
-      console.warn('[' + _SLIDES_KEY + '] localStorage full — relying on cloud autosave for persistence. (' + (err && err.name) + ')');
-      _slidesQuotaWarned = true;
+    // Try to free space by evicting other large transient caches, then retry.
+    const evictable = ['lb_slides_v4', 'lb_plan_v4', 'lb_autosave_v4', 'lb_img_lib'];
+    for (const k of evictable) {
+      if (k === key) continue;
+      try {
+        if (localStorage.getItem(k) === null) continue;
+        localStorage.removeItem(k);
+        localStorage.setItem(key, value);
+        return true;
+      } catch (_) { /* keep trying */ }
     }
-    try { localStorage.removeItem(_SLIDES_KEY); } catch(_) {}
+    if (!_quotaWarnedKeys.has(key)) {
+      console.warn('[' + key + '] localStorage full — falling back to cloud autosave. (' + (err && err.name) + ')');
+      _quotaWarnedKeys.add(key);
+    }
+    try { localStorage.removeItem(key); } catch (_) {}
+    return false;
   }
 }
+function saveSlidesLocal() { safeLocalSet('lb_slides_v4', JSON.stringify(t2_S.slides)); }
+function savePlanLocal()   { safeLocalSet('lb_plan_v4',   JSON.stringify(t2_S.plan));   }
 
 // ══════════════════════════════════════════════════════
 // PLAN MODE TOGGLE — Full Deck vs Single Slide
@@ -6895,7 +6910,7 @@ Respond ONLY with a JSON array, no markdown, no preamble:
     t2_S.current = 0;
     t2_S.chatHistory = [];
     t2_S.feedbackHistory = [];
-    localStorage.setItem('lb_plan_v4', JSON.stringify(plan));
+    savePlanLocal();
     localStorage.removeItem('lb_slides_v4');
 
     renderPlanList();
@@ -7044,7 +7059,7 @@ async function generateSingleSlide() {
   t2_S.feedbackHistory = [];
   t2_S.currentSectionTitle = '';
   try {
-    localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+    savePlanLocal();
     localStorage.removeItem('lb_slides_v4');
   } catch(e) {}
 
@@ -7173,7 +7188,7 @@ function duplicateSlide(idx) {
   // Fix slide numbers in approved slides
   renumberSlides();
 
-  localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+  savePlanLocal();
   document.getElementById('planCount').textContent = t2_S.plan.length;
   renderPlanList();
   addChatMsg('claude', 'Duplicated slide ' + (idx + 1) + '. You can now change its template or content.');
@@ -7187,7 +7202,7 @@ function moveSlide(idx, dir) {
   t2_S.plan[idx] = t2_S.plan[newIdx];
   t2_S.plan[newIdx] = temp;
   renumberSlides();
-  localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+  savePlanLocal();
   renderPlanList();
   if (t2_S.current === idx) t2_S.current = newIdx;
   else if (t2_S.current === newIdx) t2_S.current = idx;
@@ -7198,7 +7213,7 @@ function deleteSlideAt(idx) {
   var removed = t2_S.plan.splice(idx, 1)[0];
   t2_S.slides = t2_S.slides.filter(s => s.slideNum !== removed.slideNum);
   renumberSlides();
-  localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+  savePlanLocal();
   document.getElementById('planCount').textContent = t2_S.plan.length;
   if (t2_S.current >= t2_S.plan.length) t2_S.current = t2_S.plan.length - 1;
   renderPlanList();
@@ -8615,7 +8630,7 @@ async function sendFeedback() {
     };
     t2_S.plan.splice(insertIdx, 0, newPlanItem);
     t2_S.plan.forEach((p, i) => { p.slideNum = i + 1; });
-    localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+    savePlanLocal();
     document.getElementById('planCount').textContent = t2_S.plan.length;
     renderPlanList();
 
@@ -8684,7 +8699,7 @@ If D: reply conversationally in 1-2 sentences.`;
       t2_S.plan.splice(insertIdx, 0, newPlanItem);
       // Renumber all slides
       t2_S.plan.forEach((p, i) => { p.slideNum = i + 1; });
-      localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+      savePlanLocal();
       document.getElementById('planCount').textContent = t2_S.plan.length;
       renderPlanList();
       addChatMsg('claude', `Added slide "${newPlanItem.topic}" (template ${newPlanItem.templateId}) ${parsed.position === 'before' ? 'before' : 'after'} the current slide. Generating it now…`);
@@ -8695,7 +8710,7 @@ If D: reply conversationally in 1-2 sentences.`;
         const removed = t2_S.plan.splice(t2_S.current, 1)[0];
         t2_S.slides = t2_S.slides.filter(s => s.slideNum !== removed.slideNum);
         t2_S.plan.forEach((p, i) => { p.slideNum = i + 1; });
-        localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+        savePlanLocal();
         document.getElementById('planCount').textContent = t2_S.plan.length;
         if (t2_S.current >= t2_S.plan.length) t2_S.current = t2_S.plan.length - 1;
         renderPlanList();
@@ -9246,7 +9261,7 @@ function loadSession(e) {
             }
           });
         });
-        localStorage.setItem('lb_plan_v4', JSON.stringify(t2_S.plan));
+        savePlanLocal();
         saveSlidesLocal();
         updateProgress(80, 'Rebuilding workspace…');
         if (t2_S.plan.length) {
