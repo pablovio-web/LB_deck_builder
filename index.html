@@ -6816,10 +6816,20 @@ Respond ONLY with a JSON array, no markdown, no preamble:
 
   try {
     const messages = [{ role: 'user', content: userMsg }];
-    const data = await callClaude(system, messages, 6000);
+    const data = await callClaude(system, messages, 12000);
     const raw = data.content.map(b => b.text || '').join('');
     const clean = raw.replace(/```json|```/g, '').trim();
-    const plan = safeParseJSON(clean);
+    let plan = safeParseJSON(clean);
+    // Unwrap common wrappers if the model returned an object instead of an array
+    if (plan && !Array.isArray(plan)) {
+      if (Array.isArray(plan.plan)) plan = plan.plan;
+      else if (Array.isArray(plan.slides)) plan = plan.slides;
+      else if (Array.isArray(plan.outline)) plan = plan.outline;
+    }
+    if (!Array.isArray(plan)) {
+      console.warn('[planner] Non-array result. Raw start:', raw.slice(0, 400));
+      throw new Error('Planner did not return a JSON array (got ' + (plan === null ? 'null' : typeof plan) + '). Check the console for the raw response.');
+    }
 
     // ── Auto-insert AGENDA slide after cover (if AI didn't include one) ──
     const hasAgenda = plan.some(p => ['28','29','30','31'].includes(p.templateId));
@@ -11395,7 +11405,17 @@ async function extractSessionLearnings(chatMessages, source) {
 
     var resp = await callClaude(systemPrompt, [{ role: 'user', content: userMsg }], 1000);
     var raw = resp.content?.[0]?.text || '';
-    var parsed = safeParseJSON(raw);
+    // Quick gate: if the response doesn't look like a JSON array, skip cleanly.
+    var trimmed = raw.trim();
+    if (!trimmed.startsWith('[') && trimmed.indexOf('[') === -1) {
+      console.log('[learnings] Skipped — response was not a JSON array');
+      return;
+    }
+    var parsed;
+    try { parsed = safeParseJSON(raw); } catch (parseErr) {
+      console.log('[learnings] Skipped — could not parse response as JSON');
+      return;
+    }
     var newLearnings = Array.isArray(parsed) ? parsed : (parsed?.learnings || []);
 
     if (!newLearnings.length) {
